@@ -181,7 +181,7 @@ details summary{cursor:pointer;font-size:.9rem;margin:6px 0}
 /* ============================================================
    Konfiguration
    ============================================================ */
-const VERSION = "1.0 (14.10.2026)";
+const VERSION = "1.1 (14.10.2026)";
 const SCOPE = "https://www.googleapis.com/auth/drive.file";
 const DRIVE = "https://www.googleapis.com/drive/v3";
 const UPLOAD = "https://www.googleapis.com/upload/drive/v3";
@@ -282,7 +282,7 @@ async function idbGet(k){ try{ const db=await idbOpen(); return await new Promis
 let PROG  = lsGet("prog", {});      // Lernstand je Frage-ID: {f, due, hist:[{d,g,s}], lapses, unl, upd}
 let TRANS = lsGet("trans", {});     // Transfer-Ausarbeitungen je Modul
 let SIMS  = lsGet("sims", []);      // Ergebnisse der Klausursimulationen
-let SET   = Object.assign({statuses:["A","B"], exams:{}, upd:0}, lsGet("set", {}));
+let SET   = Object.assign({statuses:["A","B"], exams:{}, autoUnlock:true, upd:0}, lsGet("set", {}));
 let LOCAL = Object.assign({theme:null, cid:"", email:"", ids:{}, chg:0, synced:0, lastSync:null, lastBackup:0, pkgDriveTime:null, pkgErstellt:null}, lsGet("local", {}));
 let DIFF  = lsGet("diff", null);
 let PKG = null, ITEMS = [], BUILD = {warnings:[], cards:0, meta:0, files:[]};
@@ -396,11 +396,17 @@ function recommendation(m){
   const perDay = room > 0 ? Math.ceil(avail / room) : avail;
   return Math.max(0, Math.min(avail, perDay - unlockedToday(m)));
 }
+// Lastenheft B2 (geändert 14.10.2026): alle neuen trainierbaren Karten automatisch in Fach 1
+function autoUnlock(){
+  if(!SET.autoUnlock || !ITEMS.length) return 0;
+  let n = 0; for(const m of Object.keys(MODULES)) n += unlock(m, 9999);
+  return n;
+}
 function unlock(m, n){
   const t = todayStr(), now = Date.now();
   const list = newAvail(m).slice(0, n);
-  list.forEach(i => { PROG[i.id] = {f:1, due:t, hist:[], lapses:0, unl:t, upd:now}; });
-  changed(); return list.length;
+  list.forEach(i => { PROG[i.id] = {f:1, due:t, hist:[], lapses:0, unl:t, upd:1}; });
+  if(list.length) changed(); return list.length;
 }
 // Bewertung: g = "r" richtig, "t" teilweise, "f" falsch. Nur fällige Karten wechseln das Fach (Zusatzübung zählt nur in der Statistik).
 function rate(it, g){
@@ -563,7 +569,9 @@ async function syncNow(opts={}){
     const gotPkg = await pullPackage(folder);
     if(opts.unit && Date.now() - (LOCAL.lastBackup||0) > 10*60e3) await backup(folder);
     setSync("ok", "Abgeglichen " + new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"}));
+    if(SET.autoUnlock && autoUnlock()) softRender();
     if(lc || gotPkg || opts.first) softRender();
+    if(opts.first || opts.dircheck) autoContentCheck(false);
   }catch(e){
     if(e.auth){ setSync("auth", "Anmeldung abgelaufen"); }
     else if(e.net){ setSync("off", "Offline, Abgleich später"); }
@@ -586,7 +594,8 @@ async function pullPackage(folder){
   if(PKG && (pkg.erstellt||"") <= (PKG.erstellt||"")) return false;
   await idbSet("pkg", pkg);
   applyPackage(pkg, true);
-  toast(`Neue Inhalte vom ${fmtDT(pkg.erstellt)} geladen: ${ITEMS.length} Fragen.`);
+  const nu = autoUnlock();
+  toast(`Neue Inhalte vom ${fmtDT(pkg.erstellt)} geladen: ${ITEMS.length} Fragen${nu?`, ${nu} neu in Fach 1`:""}.`);
   return true;
 }
 async function backup(folder){
@@ -664,23 +673,47 @@ async function buildAndUpload(src){
     LOCAL.ids.inhalte = w.id || id; LOCAL.pkgDriveTime = w.modifiedTime || null; persistLocal();
     await idbSet("pkg", pkg);
     applyPackage(pkg, true);
+    LOCAL.contentFp = src.fp || contentFp(files); persistLocal();
+    const nu = autoUnlock();
+    if(nu) toast(`${nu} neue Karten in Fach 1.`);
     setSync("ok", "Inhalte in Drive " + new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"}));
-    toast(`${ITEMS.length} Fragen und ${Object.keys(bilder).length} Bilder nach Drive gelegt.`);
+    if(!src.quiet) toast(`${ITEMS.length} Fragen und ${Object.keys(bilder).length} Bilder nach Drive gelegt.`);
     render();
   }catch(e){
     if(e.auth) setSync("auth","Anmeldung abgelaufen"); else if(e.net) setSync("off","Offline"); else setSync("err","Hochladen fehlgeschlagen");
     toast("Inhalte nicht hochgeladen: " + e.message);
   }
 }
+function contentFp(files){ return hashStr(files.map(f=>f.path+"\u0001"+f.text).sort().join("\u0002")); }
+// Am PC: gemerkten Studienordner prüfen und bei Änderungen das Inhaltspaket selbst erneuern (Lastenheft G7, geändert 14.10.2026)
+let DIR_STATE = "none", LAST_DIR_CHECK = 0;
+async function autoContentCheck(interactive){
+  if(DEVICE!=="PC" || !window.showDirectoryPicker || !hasToken()) return;
+  if(!interactive && Date.now() - LAST_DIR_CHECK < 90e3) return;
+  const h = await idbGet("dir"); if(!h){ DIR_STATE = "none"; return; }
+  LAST_DIR_CHECK = Date.now();
+  try{
+    let perm = await h.queryPermission({mode:"read"});
+    if(perm!=="granted" && interactive) perm = await h.requestPermission({mode:"read"});
+    if(perm!=="granted"){ if(DIR_STATE!=="ask"){ DIR_STATE = "ask"; softRender(); } return; }
+    DIR_STATE = "ok";
+    const src = await collectFromHandle(h);
+    src.fp = contentFp(src.files);
+    if(src.fp === LOCAL.contentFp){ if(interactive){ toast("Keine neuen Inhalte im Studienordner."); softRender(); } return; }
+    src.quiet = !interactive;
+    await buildAndUpload(src);
+    if(!interactive) toast("Neue Inhalte aus dem Studienordner übernommen und nach Drive gelegt.");
+  }catch(e){ DIR_STATE = "ask"; }
+}
 async function pushContent(){
   if(!hasToken()){ toast("Bitte zuerst mit Google anmelden."); return login(); }
   if(window.showDirectoryPicker){
-    try{ const h = await window.showDirectoryPicker({id:"studium", mode:"read"}); return buildAndUpload(await collectFromHandle(h)); }
+    try{ const h = await window.showDirectoryPicker({id:"studium", mode:"read"}); await idbSet("dir", h); DIR_STATE = "ok"; const src = await collectFromHandle(h); src.fp = contentFp(src.files); return buildAndUpload(src); }
     catch(e){ if(e && e.name==="AbortError") return; }
   }
   $("#dirInput").click();
 }
-$("#dirInput").addEventListener("change", async ev => { const list=[...ev.target.files]; ev.target.value=""; if(list.length) buildAndUpload(await collectFromList(list)); });
+$("#dirInput").addEventListener("change", async ev => { const list=[...ev.target.files]; ev.target.value=""; if(list.length){ const src = await collectFromList(list); src.fp = contentFp(src.files); buildAndUpload(src); } });
 
 /* ============================================================
    Ansichten
@@ -743,6 +776,8 @@ function viewHome(){
   const order = modOrder();
   const allDue = order.reduce((n,m)=>n+moduleStats(m).due.length, 0);
   let html = syncBanner();
+  if(DIR_STATE==="ask") html += `<div class="note">Studienordner auf neue Inhalte prüfen: <a href="#" id="dirCheck">Jetzt prüfen</a> (Brave fragt nach der Freigabe, „Bei jedem Besuch erlauben“ wählen, falls angeboten)</div>`;
+  else if(DEVICE==="PC" && hasToken() && window.showDirectoryPicker && DIR_STATE==="none" && PKG) html += `<div class="note">Damit die App neue Inhalte selbst findet: einmal unter Daten „Inhalte nach Drive“ ausführen und den Studienordner wählen.</div>`;
   if(DIFF && !DIFF.gesehen) html += `<div class="note">Neue Inhalte vom ${fmtDT(DIFF.at)}: ${DIFF.neu.length} neue, ${DIFF.geaendert.length} geänderte Fragen. <a href="#" data-go="stats">Anzeigen</a></div>`;
   const pkgAge = PKG ? Math.floor((Date.now()-new Date(PKG.erstellt))/864e5) : null;
   html += `<div class="row" style="justify-content:space-between"><h1 style="margin:0">Bis zur nächsten Klausur</h1>
@@ -758,13 +793,14 @@ function viewHome(){
       <div class="stack" role="img" aria-label="Karten je Fach: ${s.fach.join(", ")}">${s.fach.map((n,i)=>`<i style="height:${Math.round(n/max*100)}%;background:var(--p${i+1})"></i>`).join("")}</div>
       <div class="lbl mono">${s.fach.map(n=>`<span>${n}</span>`).join("")}</div>
       <div class="facts mono"><span><b>${s.due.length}</b> fällig</span><span><b>${s.fresh.length}</b> neu</span><span><b>${s.gaps.length}</b> ${s.gaps.length===1?"Lücke":"Lücken"}</span>${s.errors.length?`<span><b>${s.errors.length}</b> Fehler</span>`:""}</div>
-      ${s.fresh.length?`<div class="unl">Empfehlung heute: <b>${rec}</b> neue freischalten${ut?` (heute schon ${ut})`:""}
+      ${SET.autoUnlock?"":s.fresh.length?`<div class="unl">Empfehlung heute: <b>${rec}</b> neue freischalten${ut?` (heute schon ${ut})`:""}
         <div class="row" style="margin-top:8px"><button class="btn small" data-unl="${m}" data-n="${Math.max(rec,1)}">${Math.max(rec,1)} freischalten</button><button class="btn small ghost" data-unl="${m}" data-n="5">+5</button></div></div>`:""}
       <div class="row" style="margin-top:12px"><button class="btn ghost small" data-train="${m}" ${s.due.length?"":"disabled"}>${m} üben</button></div>
     </section>`;
   }
-  html += `</div><p class="hint" style="margin-top:14px">Empfehlung: so viele neue Karten pro Tag, dass jede bis 2 Tage vor der Klausur alle sechs Fächer durchlaufen kann (${CYCLE} Tage bei durchgehend richtig). Lücken sind bekannte Klausurfragen ohne Musterantwort, sie werden im Modulchat ergänzt.</p>`;
+  html += `</div><p class="hint" style="margin-top:14px">${SET.autoUnlock?`Neue trainierbare Karten kommen automatisch in Fach 1 (umstellbar unter Daten). Fällige Karten bleiben fällig, bis du sie geübt hast. `:""}Empfehlung: so viele neue Karten pro Tag, dass jede bis 2 Tage vor der Klausur alle sechs Fächer durchlaufen kann (${CYCLE} Tage bei durchgehend richtig). Lücken sind bekannte Klausurfragen ohne Musterantwort, sie werden im Modulchat ergänzt.</p>`;
   main.innerHTML = html; wireBanner();
+  const dc = $("#dirCheck"); if(dc) dc.onclick = e => { e.preventDefault(); autoContentCheck(true); };
   $("#startAll").onclick = () => { SESSION=null; VIEW="train"; render({modul:"ALL"}); };
   main.querySelectorAll("[data-train]").forEach(b => b.onclick = () => { SESSION=null; VIEW="train"; render({modul:b.dataset.train}); });
   main.querySelectorAll("[data-unl]").forEach(b => b.onclick = () => { const n = unlock(b.dataset.unl, Number(b.dataset.n)); toast(`${n} ${n===1?"Karte":"Karten"} in Fach 1 freigeschaltet.`); viewHome(); });
@@ -1159,6 +1195,7 @@ function viewData(){
       <button class="btn small ghost" id="bkList" ${hasToken()?"":"disabled"}>Sicherungen anzeigen</button><div id="bk"></div>
       <div class="row" style="margin-top:10px"><button class="btn link" id="expBtn">Lernstand als Datei herunterladen</button></div></div>
     <h2>Training</h2>
+    <div class="chips" style="margin-bottom:12px"><button class="chip" id="autoU" aria-pressed="${!!SET.autoUnlock}">Neue Karten automatisch in Fach 1</button></div>
     <p class="small muted">Welche Stufen trainiert werden (Standard A und B, C nur als Zusatz, X nie)</p><div class="chips">${["A","B","C","?"].map(st).join("")}</div>
     <h2>Klausurtermine</h2>
     <p class="hint">Die letzte Wiederholung liegt spätestens zwei Tage vor der Klausur. Bei Terminänderung hier anpassen.</p>
@@ -1188,7 +1225,8 @@ function viewData(){
       });
     }catch(e){ box.innerHTML = `<p class="small">Nicht möglich: ${esc(e.message)}</p>`; }
   });
-  main.querySelectorAll("[data-st]").forEach(c => c.onclick = () => { const s=c.dataset.st; SET.statuses = SET.statuses.includes(s) ? SET.statuses.filter(x=>x!==s) : SET.statuses.concat(s); if(!SET.statuses.length) SET.statuses=["A"]; SET.upd=Date.now(); changed(); viewData(); });
+  on("autoU", () => { SET.autoUnlock = !SET.autoUnlock; SET.upd = Date.now(); if(SET.autoUnlock) autoUnlock(); changed(); viewData(); });
+  main.querySelectorAll("[data-st]").forEach(c => c.onclick = () => { const s=c.dataset.st; SET.statuses = SET.statuses.includes(s) ? SET.statuses.filter(x=>x!==s) : SET.statuses.concat(s); if(!SET.statuses.length) SET.statuses=["A"]; SET.upd=Date.now(); autoUnlock(); changed(); viewData(); });
   main.querySelectorAll("[data-exam]").forEach(i => i.onchange = () => { if(!i.value) return; SET.exams[i.dataset.exam] = i.value; SET.upd=Date.now(); changed(); toast("Termin gespeichert."); });
 }
 
@@ -1196,13 +1234,15 @@ function viewData(){
    Start
    ============================================================ */
 applyTheme();
-document.addEventListener("visibilitychange", () => { if(document.visibilityState==="hidden" && pending() && hasToken()) syncNow({unit:true}); else if(document.visibilityState==="visible" && hasToken()) scheduleSync(300); });
+document.addEventListener("visibilitychange", () => { if(document.visibilityState==="hidden" && pending() && hasToken()) syncNow({unit:true}); else if(document.visibilityState==="visible" && hasToken()) scheduleSync(300, {dircheck:true}); });
 window.addEventListener("online", () => { if(hasToken()) scheduleSync(300); });
 setInterval(() => { if(document.visibilityState==="visible" && hasToken() && !SESSION && !SIMRUN) syncNow(); }, 5*60e3);
 if(location.protocol.startsWith("http") && "serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
 (async () => {
   const pkg = await idbGet("pkg");
   if(pkg){ applyPackage(pkg, pkg.erstellt !== LOCAL.pkgErstellt); }
+  autoUnlock();
+  if(DEVICE==="PC" && window.showDirectoryPicker){ const h = await idbGet("dir"); if(h){ try{ DIR_STATE = (await h.queryPermission({mode:"read"}))==="granted" ? "ok" : "ask"; }catch(e){ DIR_STATE="ask"; } } }
   render();
   if(hasToken()) syncNow({first:true}); else renderSync();
 })();
