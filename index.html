@@ -2,786 +2,186 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Klausurtrainer</title>
-<meta name="description" content="Klausurtraining für M1 bis M3, Soziale Arbeit, FOM">
-<meta name="theme-color" content="#1F3B63">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Machbarkeitstest Google Drive</title>
 <style>
-:root{
-  --paper:#F6F7F9; --sheet:#FFFFFF; --ink:#1F3B63; --text:#1D232B; --pencil:#5A6573;
-  --rule:#DCE1E8; --line:#E9EDF2; --red:#B3261E; --redsoft:#FBEDEC; --ok:#2F6B3F; --oksoft:#EAF3EC;
-  --stA:#1F3B63; --stB:#4D6E96; --stC:#8A94A1; --stX:#B3261E;
-  --serif: Georgia, "Noto Serif", "Iowan Old Style", "Times New Roman", serif;
-  --sans: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --r:6px;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --paper:#12161C; --sheet:#1A2029; --ink:#9DB8E0; --text:#E4E8EE; --pencil:#9AA5B3;
-    --rule:#2C3542; --line:#232B36; --red:#F0857C; --redsoft:#3A2224; --ok:#86C597; --oksoft:#1F3226;
-    --stA:#9DB8E0; --stB:#7F9CC4; --stC:#7E8794; --stX:#F0857C;
-  }
-}
-:root[data-theme="dark"]{
-  --paper:#12161C; --sheet:#1A2029; --ink:#9DB8E0; --text:#E4E8EE; --pencil:#9AA5B3;
-  --rule:#2C3542; --line:#232B36; --red:#F0857C; --redsoft:#3A2224; --ok:#86C597; --oksoft:#1F3226;
-  --stA:#9DB8E0; --stB:#7F9CC4; --stC:#7E8794; --stX:#F0857C;
-}
+:root{--bg:#F3F4F7;--surf:#FFFFFF;--text:#1A2030;--muted:#5E6779;--rule:#DEE2E9;--ok:#2F7A4E;--bad:#B4403A;--accent:#6B57B0}
+@media (prefers-color-scheme: dark){:root{--bg:#151A24;--surf:#1D2431;--text:#E9EDF4;--muted:#9AA5B8;--rule:#2B3445;--ok:#7CC49A;--bad:#E58C86;--accent:#A493D6;color-scheme:dark}}
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--paper);color:var(--text);font:16px/1.5 var(--sans)}
-button,input,select,textarea{font:inherit;color:inherit}
-a{color:var(--ink)}
-:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
-
-/* Kopf */
-header{position:sticky;top:0;z-index:5;background:var(--paper);border-bottom:1px solid var(--rule)}
-.bar{max-width:880px;margin:0 auto;padding:10px 16px 0;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
-.brand{font:600 1.05rem/1.2 var(--serif);color:var(--ink);margin-right:auto}
-nav{max-width:880px;margin:0 auto;padding:0 16px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
-nav button{border:0;background:none;padding:10px 10px 9px;color:var(--pencil);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
-nav button[aria-current="page"]{color:var(--ink);border-bottom-color:var(--ink);font-weight:600}
-main{max-width:880px;margin:0 auto;padding:20px 16px 80px}
-h1{font:600 1.6rem/1.25 var(--serif);color:var(--ink);margin:0 0 4px}
-h2{font:600 1.2rem/1.3 var(--serif);color:var(--ink);margin:28px 0 10px}
-h3{font-size:1rem;margin:0 0 6px}
-p{margin:0 0 10px}
-.muted{color:var(--pencil)}
-.small{font-size:.875rem}
-.hint{font-size:.875rem;color:var(--pencil);max-width:68ch}
-
-/* Bedienelemente */
-.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--ink);background:var(--ink);color:var(--sheet);padding:9px 16px;border-radius:var(--r);cursor:pointer;font-weight:600}
-.btn.ghost{background:transparent;color:var(--ink)}
-.btn.quiet{background:transparent;border-color:var(--rule);color:var(--text);font-weight:400}
-.btn:disabled{opacity:.45;cursor:not-allowed}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{border:1px solid var(--rule);background:var(--sheet);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:.9rem}
-.chip[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--sheet)}
-label.field{display:block;margin:10px 0}
-label.field span{display:block;font-size:.875rem;color:var(--pencil);margin-bottom:4px}
-input[type=text],input[type=date],input[type=number],input[type=search],select,textarea{width:100%;border:1px solid var(--rule);background:var(--sheet);border-radius:var(--r);padding:9px 10px}
-textarea{min-height:140px;resize:vertical;line-height:1.55}
-
-/* Statuszeichen */
-.st{display:inline-block;min-width:1.6em;text-align:center;font:700 .8rem/1.6 var(--sans);border-radius:4px;color:var(--sheet);padding:0 5px}
-.st.A{background:var(--stA)} .st.B{background:var(--stB)} .st.C{background:var(--stC)} .st.X{background:var(--stX)} .st.q{background:transparent;color:var(--pencil);border:1px dashed var(--pencil)}
-
-/* Übersicht */
-.mod{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r);padding:16px;margin:0 0 14px}
-.mod-head{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
-.mod-head h3{font:600 1.1rem/1.3 var(--serif);color:var(--ink);margin:0}
-.days{margin-left:auto;text-align:right}
-.days b{font:600 1.6rem/1 var(--serif);color:var(--ink)}
-.meter{height:10px;background:var(--line);border-radius:5px;overflow:hidden;display:flex;margin:12px 0 6px}
-.meter i{display:block;height:100%}
-.meter .m-sicher{background:var(--ok)} .meter .m-geuebt{background:var(--stB)}
-.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.85rem;color:var(--pencil)}
-.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
-.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:4px 16px;margin:10px 0 12px;font-size:.92rem}
-.warn{border-left:3px solid var(--red);background:var(--redsoft);padding:8px 12px;border-radius:0 var(--r) var(--r) 0;margin:8px 0;font-size:.92rem}
-.note{border-left:3px solid var(--ink);background:var(--sheet);padding:8px 12px;border-radius:0 var(--r) var(--r) 0;margin:8px 0;font-size:.92rem}
-
-/* Klausurbogen: das zentrale Element */
-.sheet{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r);display:grid;grid-template-columns:84px 1fr;overflow:hidden}
-.margin{border-right:2px solid var(--red);padding:16px 10px;text-align:center;background:linear-gradient(var(--sheet),var(--sheet))}
-.pts{font:600 1.5rem/1 var(--serif);color:var(--ink)}
-.pts small{display:block;font:400 .75rem/1.3 var(--sans);color:var(--pencil);margin-top:4px}
-.clock{margin-top:14px;font:600 1rem/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--pencil)}
-.clock.over{color:var(--red)}
-.body{padding:16px 18px 18px;min-width:0}
-.meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.85rem;color:var(--pencil);margin-bottom:8px}
-.q{font:400 1.3rem/1.45 var(--serif);margin:0 0 14px;max-width:62ch}
-.ruled{background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(1.55em - 1px),var(--line) calc(1.55em - 1px),var(--line) 1.55em);background-attachment:local;background-position:0 9px;min-height:180px}
-.correction{margin-top:16px;border-top:1px solid var(--rule);padding-top:14px}
-.check{display:flex;gap:10px;align-items:flex-start;padding:7px 4px;border-bottom:1px dashed var(--line);cursor:pointer}
-.check input{position:absolute;opacity:0;pointer-events:none}
-.tick{flex:0 0 22px;height:22px;border:1.5px solid var(--rule);border-radius:4px;display:grid;place-items:center;color:transparent;font:700 15px/1 var(--sans);margin-top:1px}
-.check input:checked + .tick{border-color:var(--red);color:var(--red)}
-.check input:focus-visible + .tick{outline:2px solid var(--ink);outline-offset:2px}
-.score{display:flex;align-items:baseline;gap:10px;margin:12px 0 4px}
-.score b{font:600 1.4rem/1 var(--serif);color:var(--red)}
-.grades{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
-.grades button{border:1px solid var(--rule);background:var(--sheet);border-radius:var(--r);padding:9px 4px;cursor:pointer;font-size:.9rem;line-height:1.25}
-.grades button.sugg{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);font-weight:600}
-.grades kbd{display:block;font-size:.72rem;color:var(--pencil)}
-.ans{margin-top:16px;display:grid;gap:12px}
-@media(min-width:760px){.ans.two{grid-template-columns:1fr 1fr}}
-.box{border:1px solid var(--rule);border-radius:var(--r);padding:12px 14px;background:var(--paper)}
-.box h3{font-size:.85rem;color:var(--pencil);font-weight:600}
-.box.fehler{background:var(--redsoft);border-color:transparent}
-.box.fehler h3{color:var(--red)}
-.box p{white-space:pre-wrap;margin:0}
-.wb{max-width:100%;border:1px solid var(--rule);border-radius:var(--r);margin-top:8px}
-details summary{cursor:pointer;color:var(--ink);font-size:.9rem;margin:6px 0}
-.progress{font-size:.85rem;color:var(--pencil);margin:0 0 10px;display:flex;gap:12px;flex-wrap:wrap}
-@media(max-width:560px){
-  .sheet{grid-template-columns:1fr}
-  .margin{border-right:0;border-bottom:2px solid var(--red);display:flex;align-items:center;gap:16px;padding:10px 14px;text-align:left}
-  .pts{font-size:1.2rem}.pts small{display:inline;margin-left:6px}
-  .clock{margin:0 0 0 auto}
-  .q{font-size:1.15rem}
-  .body{padding:14px}
-}
-
-/* Katalog */
-.list{border-top:1px solid var(--rule)}
-.li{display:grid;grid-template-columns:auto 1fr auto;gap:10px;padding:10px 2px;border-bottom:1px solid var(--rule);align-items:baseline;cursor:pointer}
-.li:hover{background:var(--sheet)}
-.li .t{font-family:var(--serif)}
-.li .s{font-size:.8rem;color:var(--pencil);white-space:nowrap}
-.why{grid-column:2/4;font-size:.85rem;color:var(--pencil)}
-
-/* Transfer */
-.tp{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r);padding:14px 16px;margin:10px 0}
-.tp h3{font:600 1rem/1.3 var(--serif);color:var(--ink)}
-.tp textarea{min-height:90px}
-.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--sheet);padding:10px 16px;border-radius:var(--r);font-size:.92rem;z-index:20;max-width:calc(100% - 32px)}
-.empty{background:var(--sheet);border:1px dashed var(--rule);border-radius:var(--r);padding:20px;text-align:left}
-table.t{width:100%;border-collapse:collapse;font-size:.9rem}
-table.t td,table.t th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--rule);vertical-align:top}
-@media (prefers-reduced-motion: no-preference){ .reveal{animation:rv .18s ease-out} @keyframes rv{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}} }
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 "Segoe UI",Roboto,Arial,sans-serif}
+main{max-width:680px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:1.35rem;margin:0 0 6px}
+h2{font-size:1.05rem;margin:26px 0 6px}
+p{margin:0 0 10px;color:var(--muted)}
+label{display:block;font-size:.85rem;color:var(--muted);margin:8px 0 3px}
+input{width:100%;font:inherit;padding:9px 10px;border:1px solid var(--rule);border-radius:8px;background:var(--surf);color:var(--text)}
+button{font:inherit;font-weight:600;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:10px;padding:10px 14px;cursor:pointer;margin:8px 8px 0 0}
+button.ghost{background:transparent;color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+details{background:var(--surf);border:1px solid var(--rule);border-radius:10px;padding:10px 14px}
+summary{cursor:pointer;font-weight:600}
+#log{background:var(--surf);border:1px solid var(--rule);border-radius:10px;padding:12px 14px;margin-top:18px;white-space:pre-wrap;font-family:Consolas,monospace;font-size:.85rem;min-height:3em;overflow-wrap:anywhere}
+.ok{color:var(--ok);font-weight:700}.bad{color:var(--bad);font-weight:700}
 </style>
 </head>
 <body>
-<header>
-  <div class="bar"><div class="brand">Klausurtrainer Soziale Arbeit</div><div class="small muted" id="hdrInfo"></div></div>
-  <nav id="nav" aria-label="Bereiche">
-    <button data-v="home">Übersicht</button>
-    <button data-v="train">Training</button>
-    <button data-v="transfer">Transferaufgaben</button>
-    <button data-v="catalog">Fragenkatalog</button>
-    <button data-v="data">Daten</button>
-  </nav>
-</header>
-<main id="main"></main>
-<input type="file" id="dirInput" webkitdirectory directory multiple hidden>
-<input type="file" id="fileInput" accept=".csv,.json,text/csv,application/json" multiple hidden>
+<main>
+  <h1>Machbarkeitstest: Lern-App und Google Drive</h1>
+  <p>Prüft Weg 3: Anmeldung bei Google, gemeinsame Datei für PC und Handy, Lesezugriff auf den Studienordner. Die Seite enthält keine Inhalte aus deinem Studium. Sie schreibt nur die Testdatei <b>Lernapp_Drivetest.json</b> in „Meine Ablage“.</p>
 
+  <details id="cfgBox">
+    <summary>Zugangsdaten (einmal pro Gerät eintragen)</summary>
+    <label for="cid">OAuth-Client-ID (endet auf .apps.googleusercontent.com)</label><input id="cid" autocomplete="off">
+    <label for="key">API-Schlüssel (für die Ordnerauswahl)</label><input id="key" autocomplete="off">
+    <label for="app">Projektnummer (nur Ziffern)</label><input id="app" inputmode="numeric" autocomplete="off">
+    <button id="save" class="ghost">Speichern</button>
+  </details>
+
+  <h2>Test A: Anmelden</h2>
+  <button id="login">Mit Google anmelden</button>
+
+  <h2>Test B: Gemeinsame Datei</h2>
+  <p>Am PC „Schreiben“, dann am Handy „Lesen“ und „Schreiben“, dann am PC wieder „Lesen“. Der Zähler und das Gerät zeigen, wer zuletzt geschrieben hat.</p>
+  <button id="write" disabled>Schreiben</button><button id="read" class="ghost" disabled>Lesen</button>
+
+  <h2>Test C: Studienordner lesen</h2>
+  <p>Im Auswahlfenster den Ordner <b>Studium_Cloudkopie</b> anklicken und „Auswählen“ drücken. Der Test versucht danach, die karten.csv von M3 zu lesen.</p>
+  <button id="pick" disabled>Ordner freigeben und lesen</button>
+  <button id="reread" class="ghost" disabled>Erneut lesen ohne Auswahl</button>
+
+  <div id="log" aria-live="polite"></div>
+  <button id="copy" class="ghost">Ergebnis kopieren</button>
+</main>
+
+<script src="https://accounts.google.com/gsi/client" async></script>
+<script src="https://apis.google.com/js/api.js" async></script>
 <script>
 "use strict";
-/* ============================================================
-   Konfiguration
-   ============================================================ */
-const VERSION = "Muster 0.2 (14.10.2026)";
-const MODULES = {
-  M2:{name:"Aufbau des Sozialsystems und Sozialpolitik", short:"Sozialsystem und Sozialpolitik", doz:"Prof. Dr. Boroch", exam:"2027-01-14", folder:"02_",
-      rule:"Freitext, keine MC. Systeme grafisch und schriftlich. 90 Punkte, bestanden ab 45."},
-  M3:{name:"Lebensphasenorientierte Handlungsfelder", short:"Lebensphasen", doz:"Prof. Dr. Herberg", exam:"2027-01-22", folder:"03_",
-      rule:"Freitext, keine MC. Die KR-Fragen ergeben die Klausur. Tätigkeiten eindeutig benennen."},
-  M1:{name:"Grundlagen der Sozialen Arbeit", short:"Grundlagen", doz:"Dr. Thiele", exam:"2027-01-28", folder:"01_",
-      rule:"Überwiegend freie Fragen. Klausur wie die Übungsblätter. Zusammenhang vor Definition."}
-};
-const STATUS = {
-  A:{label:"Offiziell", long:"Vom Dozenten als Übungs- oder Klausurfrage ausgegeben"},
-  B:{label:"Betont", long:"Vom Dozenten angekündigt oder klar betont"},
-  C:{label:"Abgeleitet", long:"Aus Lernzielen, Skript oder Vorlesung abgeleitet"},
-  X:{label:"Ausgeschlossen", long:"Vom Dozenten ausdrücklich ausgeschlossen"},
-  "?":{label:"Unbewertet", long:"Karte ohne Eintrag in der Prüfungsebene"}
-};
-const RICHTZEIT = {Nennen:3, Definition:4, Erklären:6, Verständnis:6, Vergleichen:6, Vergleich:6, Zeichnen:8, Fall:10, Transfer:10};
-const TRANSFER_DEFAULT = {
-  M3:{title:"Theorie-Praxis-Transferaufgabe (Herberg)", punkte:15, known:true,
-      task:"Recherchieren Sie in der Nähe Ihres Wohnortes ein Angebot der Sozialen Arbeit für Kinder, Jugendliche oder Familien (SGB VIII §§ 16-21, §§ 22-26, §§ 27-41) und beschreiben Sie es kurz.",
-      source:"Skript S. 196, dazu S. 167 und 194. Herberg: 15 Punkte, vorab bekannt, gleiche Aufgabe in der Klausur (V1 2:37:55).",
-      points:["Name des Angebots","Art des Angebots","Rechtliche Verortung im SGB VIII","Zielsetzung des Angebots","Arbeitsprinzipien (wie wird gearbeitet?)","Besondere Methoden und Techniken"]},
-  M2:{title:"Transferaufgabe Träger des Sozialen (Boroch)", punkte:12, known:false,
-      task:"Noch nicht ausgegeben. Thema laut Skript Teil 2, Folie 61: Kapitel 3.2 Träger des Sozialen (Folien 61-79). Gliederung anpassen, sobald die Aufgabe vorliegt.",
-      source:"Folie: 10 % = 9 Punkte, mündlich meistens 12 (V1 1:25:02-1:27:18). Gliederung unten ist vorläufig.",
-      points:["Leistungsträger bzw. Kostenträger (Bund, Länder, Kommunen, Sozialversicherungen)","Leistungserbringer: öffentliche Träger","Leistungserbringer: frei-gemeinnützige Träger (Spitzenverbände der Wohlfahrtspflege)","Privat-gewerbliche Träger","Sozialrechtliches Dreiecksverhältnis","Einordnung des eigenen Arbeitgebers"]},
-  M1:{title:"Transferaufgabe (Thiele)", punkte:9, known:false,
-      task:"Inhalt noch unbekannt. Laut Modulbeschreibung ca. 10 % der Klausur. Ob die Aufgabe vorab bekannt gegeben wird, ist offen.",
-      source:"Modulbeschreibung M1, Abschnitt Prüfung.", points:[]}
-};
-const LS = "kt.v1.";
+const $ = id => document.getElementById(id);
+const log = $("log");
+function out(msg, cls){ const d=document.createElement("div"); if(cls) d.className=cls; d.textContent=msg; log.appendChild(d); }
+const SCOPE = "https://www.googleapis.com/auth/drive.file";
+const TESTNAME = "Lernapp_Drivetest.json";
+let token = null, tokenClient = null;
 
-/* ============================================================
-   Hilfsfunktionen
-   ============================================================ */
-const $ = (s, el=document) => el.querySelector(s);
-const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-function load(key, fallback){ try{ const v = localStorage.getItem(LS+key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; } }
-function save(key, val){ try{ localStorage.setItem(LS+key, JSON.stringify(val)); return true; }catch(e){ toast("Speichern im Browser fehlgeschlagen: " + e.message); return false; } }
-function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
-function dayNum(s){ const [y,m,d]=s.split("-").map(Number); return Math.round(Date.UTC(y,m-1,d)/864e5); }
-function numDay(n){ const d=new Date(n*864e5); return d.toISOString().slice(0,10); }
-function fmtDate(s){ if(!s) return "–"; const [y,m,d]=s.split("-"); return `${d}.${m}.${y}`; }
-function daysTo(s){ return dayNum(s) - dayNum(todayStr()); }
-function toast(msg){ const t=document.createElement("div"); t.className="toast"; t.setAttribute("role","status"); t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(), 3200); }
-function download(name, text, type="application/json"){ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();}, 500); }
+function lsGet(k){ try{ return localStorage.getItem("kt-drive-"+k) || ""; }catch(e){ return ""; } }
+function lsSet(k,v){ try{ localStorage.setItem("kt-drive-"+k, v); }catch(e){} }
+["cid","key","app"].forEach(k => $(k).value = lsGet(k));
+if(!$("cid").value) $("cfgBox").open = true;
+$("save").onclick = () => { ["cid","key","app"].forEach(k => lsSet(k, $(k).value.trim())); out("Zugangsdaten gespeichert."); tokenClient = null; };
 
-function parseCSV(text, delim=";"){
-  text = text.replace(/^﻿/, "");
-  const rows=[]; let row=[], f="", q=false;
-  for(let i=0;i<text.length;i++){
-    const c=text[i];
-    if(q){ if(c==='"'){ if(text[i+1]==='"'){ f+='"'; i++; } else q=false; } else f+=c; continue; }
-    if(c==='"' && f===""){ q=true; continue; }
-    if(c===delim){ row.push(f); f=""; continue; }
-    if(c==="\r") continue;
-    if(c==="\n"){ row.push(f); rows.push(row); row=[]; f=""; continue; }
-    f+=c;
-  }
-  if(f!=="" || row.length){ row.push(f); rows.push(row); }
-  const clean = rows.filter(r => r.some(x => x.trim()!==""));
-  if(!clean.length) return {head:[], rows:[], bad:[]};
-  const head = clean[0].map(h=>h.trim());
-  const out=[], bad=[];
-  clean.slice(1).forEach((r,i)=>{
-    if(r.length!==head.length) bad.push({line:i+2, cols:r.length, expected:head.length});
-    const o={}; head.forEach((h,j)=>o[h]=(r[j]??"").trim()); out.push(o);
-  });
-  return {head, rows:out, bad};
-}
+const device = /Android/i.test(navigator.userAgent) ? "Handy (Android)" : (/Windows/i.test(navigator.userAgent) ? "PC (Windows)" : "anderes Gerät");
+const brave = !!(navigator.brave);
+out("Gerät: " + device + ", Browser: " + (brave ? "Brave" : (navigator.userAgent.match(/(Edg|Chrome|Firefox|Safari)\/[\d.]+/)||["unbekannt"])[0]));
+out("Adresse: " + location.origin);
 
-/* ============================================================
-   Datenmodell
-   ============================================================ */
-let ITEMS = load("items", []);            // zusammengeführte Fragen
-let META = load("meta", null);            // Ladeinfo
-let PROG = load("prog", {});              // Lernstand je ID
-let TRANS = load("transfer", {});         // Transferaufgaben
-let SET = Object.assign({newPerDay:10, statuses:["A","B"], exams:{}, lastExport:null, theme:"auto"}, load("settings", {}));
-let FILES = new Map();                    // Pfad -> File (nur Sitzung)
-let DIR = null;                           // Verzeichnis-Handle (nur Sitzung)
+function enable(on){ ["write","read","pick","reread"].forEach(id => $(id).disabled = !on); }
 
-function examOf(m){ return (SET.exams && SET.exams[m]) || MODULES[m].exam; }
-function moduleOfId(id){ const m = /^(M\d)/.exec(id||""); return m ? m[1] : ""; }
-function splitKern(s){ return (s||"").split("|").map(x=>x.trim()).filter(Boolean); }
+function waitFor(cond, ms){ return new Promise((res,rej)=>{ const t0=Date.now(); (function loop(){ if(cond()) return res(); if(Date.now()-t0>ms) return rej(new Error("Zeitüberschreitung beim Laden einer Google-Bibliothek. Blockiert Brave Shields etwas?")); setTimeout(loop,100); })(); }); }
 
-function buildItems(cardFiles, metaFiles){
-  const report = {cards:0, meta:0, warnings:[]};
-  const cards = new Map();
-  for(const cf of cardFiles){
-    const p = parseCSV(cf.text);
-    p.bad.forEach(b => report.warnings.push(`${cf.path}: Zeile ${b.line} hat ${b.cols} statt ${b.expected} Spalten`));
-    if(p.rows.length && !("frage" in p.rows[0])){ report.warnings.push(`${cf.path}: Spalte frage fehlt, Datei übersprungen`); continue; }
-    for(const r of p.rows){ if(!r.id) continue; if(cards.has(r.id)) report.warnings.push(`Karten-ID doppelt: ${r.id}`); cards.set(r.id, r); report.cards++; }
-  }
-  const metas = new Map();
-  for(const mf of metaFiles){
-    const p = parseCSV(mf.text);
-    p.bad.forEach(b => report.warnings.push(`${mf.path}: Zeile ${b.line} hat ${b.cols} statt ${b.expected} Spalten`));
-    for(const r of p.rows){ if(!r.id) continue; if(metas.has(r.id)) report.warnings.push(`Prüfungsebene: ID doppelt ${r.id}`); metas.set(r.id, r); report.meta++; }
-  }
-  const items = [];
-  const mk = (id, c, m) => {
-    c = c || {}; m = m || {};
-    const status = (m.status || "?").toUpperCase();
-    const it = {
-      id, modul: c.modul || moduleOfId(id),
-      thema: m.thema || c.thema || "", frage: m.frage || c.frage || "",
-      antwort: m.antwort || c.antwort || "", mind: m.mindestantwort || "",
-      kern: splitKern(m.kernelemente), fehler: m.typische_fehler || "",
-      bild: m.bild || "", status: STATUS[status] ? status : "?",
-      punkte: m.punkte ? Number(String(m.punkte).replace(",", ".")) : null,
-      form: m.aufgabenform || c.typ || "", quelle: c.quelle || "", hinweis: c.dozentenhinweis || "",
-      beleg: m.beleg || "", gueltig: (m.gueltig || "aktiv").toLowerCase(), karte: !!c.id
-    };
-    it.offen = !(it.antwort || it.mind);
-    return it;
-  };
-  for(const [id,c] of cards) items.push(mk(id, c, metas.get(id)));
-  for(const [id,m] of metas){
-    if(cards.has(id)) continue;
-    if(/^M\d-\d+$/.test(id)) report.warnings.push(`Prüfungsebene verweist auf Karte ${id}, die in karten.csv fehlt`);
-    if(!m.frage){ report.warnings.push(`Prüfungsebene ${id}: weder Karte noch Frage vorhanden`); continue; }
-    items.push(mk(id, null, m));
-  }
-  items.sort((a,b)=> a.modul.localeCompare(b.modul) || a.id.localeCompare(b.id, "de", {numeric:true}));
-  const unrated = items.filter(i=>i.status==="?").length;
-  if(unrated) report.warnings.push(`${unrated} Karte(n) ohne Eintrag in der Prüfungsebene (Status unbewertet)`);
-  return {items, report};
-}
-
-function commitData(items, report, source){
-  ITEMS = items;
-  META = {loadedAt:new Date().toISOString(), source, cards:report.cards, meta:report.meta, warnings:report.warnings};
-  save("items", ITEMS); save("meta", META);
-}
-
-/* ---------- Einlesen: Ordner (File System Access) ---------- */
-async function idb(){ return new Promise((res,rej)=>{ const r=indexedDB.open("kt-handles",1); r.onupgradeneeded=()=>r.result.createObjectStore("h"); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
-async function idbSet(k,v){ try{ const db=await idb(); await new Promise((res,rej)=>{ const tx=db.transaction("h","readwrite"); tx.objectStore("h").put(v,k); tx.oncomplete=res; tx.onerror=()=>rej(tx.error); }); }catch(e){} }
-async function idbGet(k){ try{ const db=await idb(); return await new Promise((res)=>{ const tx=db.transaction("h"); const r=tx.objectStore("h").get(k); r.onsuccess=()=>res(r.result); r.onerror=()=>res(null); }); }catch(e){ return null; } }
-
-async function readFromHandle(root){
-  const cardFiles=[], metaFiles=[];
-  for await (const [name, h] of root.entries()){
-    if(h.kind==="directory" && /^0[1-9]_/.test(name)){
-      try{ const f = await (await h.getFileHandle("karten.csv")).getFile(); cardFiles.push({path:`${name}/karten.csv`, text:await f.text()}); }catch(e){}
-      try{
-        const pd = await h.getDirectoryHandle("Pruefung");
-        for await (const [fn, fh] of pd.entries()){
-          if(fh.kind==="file" && /^pruefung_M\d+\.csv$/i.test(fn)) metaFiles.push({path:`${name}/Pruefung/${fn}`, text:await (await fh.getFile()).text()});
-        }
-      }catch(e){}
-    }
-  }
-  return {cardFiles, metaFiles};
-}
-async function pickFolder(){
-  if(window.showDirectoryPicker){
-    try{
-      const h = await window.showDirectoryPicker({id:"studium", mode:"read"});
-      DIR = h; await idbSet("dir", h);
-      return ingest(await readFromHandle(h), `Ordner ${h.name}`);
-    }catch(e){
-      if(e && e.name==="AbortError") return;
-    }
-  }
-  $("#dirInput").click();
-}
-async function reloadFolder(){
-  const h = DIR || await idbGet("dir");
-  if(!h){ return pickFolder(); }
+$("login").onclick = async () => {
+  const cid = lsGet("cid");
+  if(!cid){ out("Bitte zuerst die Client-ID eintragen und speichern.", "bad"); $("cfgBox").open = true; return; }
   try{
-    let perm = await h.queryPermission({mode:"read"});
-    if(perm!=="granted") perm = await h.requestPermission({mode:"read"});
-    if(perm!=="granted"){ toast("Kein Zugriff auf den Ordner. Bitte erneut wählen."); return pickFolder(); }
-    DIR = h; return ingest(await readFromHandle(h), `Ordner ${h.name}`);
-  }catch(e){ return pickFolder(); }
-}
-/* ---------- Einlesen: Ordnerauswahl per Eingabefeld ---------- */
-$("#dirInput").addEventListener("change", async ev => {
-  const list = [...ev.target.files]; FILES = new Map();
-  const cardFiles=[], metaFiles=[];
-  let rootName = "";
-  for(const f of list){
-    const parts = (f.webkitRelativePath || f.name).split("/");
-    rootName = parts[0];
-    const rel = parts.slice(1).join("/");
-    FILES.set(rel, f);
-    if(/^0[1-9]_[^/]+\/karten\.csv$/.test(rel)) cardFiles.push({path:rel, text:await f.text()});
-    if(/^0[1-9]_[^/]+\/Pruefung\/pruefung_M\d+\.csv$/i.test(rel)) metaFiles.push({path:rel, text:await f.text()});
-  }
-  ev.target.value = "";
-  ingest({cardFiles, metaFiles}, `Ordner ${rootName}`);
-});
-/* ---------- Einlesen: Einzeldateien oder Sicherung (Handy) ---------- */
-$("#fileInput").addEventListener("change", async ev => {
-  const list = [...ev.target.files]; ev.target.value = "";
-  const json = list.find(f => /\.json$/i.test(f.name));
-  if(json){ return importBackup(await json.text()); }
-  const cardFiles=[], metaFiles=[];
-  for(const f of list){
-    const text = await f.text();
-    if(/^pruefung_M\d+\.csv$/i.test(f.name)) metaFiles.push({path:f.name, text});
-    else if(/\.csv$/i.test(f.name)) cardFiles.push({path:f.name, text});
-  }
-  ingest({cardFiles, metaFiles}, "Einzeldateien");
-});
-
-function ingest({cardFiles, metaFiles}, source){
-  if(!cardFiles.length && !metaFiles.length){
-    toast("Keine karten.csv und keine Prüfungsdateien gefunden. Bitte den Studienordner selbst wählen.");
-    return;
-  }
-  const {items, report} = buildItems(cardFiles, metaFiles);
-  report.files = [...cardFiles, ...metaFiles].map(f=>f.path);
-  commitData(items, report, source);
-  META.files = report.files; save("meta", META);
-  toast(`${items.length} Fragen eingelesen.`);
-  render();
-}
-
-async function imageURL(path){
-  if(!path) return null;
-  if(FILES.has(path)) return URL.createObjectURL(FILES.get(path));
-  if(DIR){
-    try{
-      const parts = path.split("/"); let h = DIR;
-      for(const p of parts.slice(0,-1)) h = await h.getDirectoryHandle(p);
-      const f = await (await h.getFileHandle(parts.at(-1))).getFile();
-      return URL.createObjectURL(f);
-    }catch(e){ return null; }
-  }
-  return null;
-}
-
-/* ============================================================
-   Lernstand und Wiederholungsplanung
-   ============================================================ */
-function prog(id){ return PROG[id] || null; }
-function trainable(it){ return !it.offen && it.status!=="X" && it.gueltig!=="überholt" && it.gueltig!=="ueberholt"; }
-function isMastered(p){ if(!p || !p.hist || !p.hist.length) return false; return p.ivl>=7 && p.hist.at(-1).p>=80; }
-function gradeOf(score){ return score<0.5?0 : score<0.8?1 : score<1?2 : 3; }
-function schedule(it, score){
-  const t = dayNum(todayStr());
-  const p = Object.assign({ivl:0, ease:2.3, reps:0, lapses:0, hist:[]}, PROG[it.id]||{});
-  const g = gradeOf(score);
-  if(g===0){ p.lapses++; p.ivl=0; p.ease=Math.max(1.3, p.ease-0.2); }
-  else{
-    if(p.ivl<=0) p.ivl = [0,1,2,4][g];
-    else p.ivl = Math.max(p.ivl+1, Math.round(p.ivl * [0,1.2,p.ease,p.ease*1.3][g]));
-    p.ease = Math.min(2.8, Math.max(1.3, p.ease + [0,-0.15,0,0.15][g]));
-    p.reps++;
-  }
-  // Kappung: letzte Wiederholung spätestens zwei Tage vor der Klausur
-  const ex = dayNum(examOf(it.modul)) - 2;
-  if(ex > t && t + p.ivl > ex) p.ivl = ex - t;
-  p.due = numDay(t + p.ivl);
-  p.hist = (p.hist||[]).concat({d:todayStr(), p:Math.round(score*100)}).slice(-30);
-  p.upd = Date.now();
-  PROG[it.id] = p; save("prog", PROG);
-  return p;
-}
-function isDue(it){ const p=prog(it.id); return p && p.due && dayNum(p.due) <= dayNum(todayStr()); }
-function newToday(){ const t=todayStr(); return Object.values(PROG).filter(p=>p.hist && p.hist.length && p.hist[0].d===t).length; }
-
-/* ============================================================
-   Ansichten
-   ============================================================ */
-let VIEW = "home";
-const main = $("#main");
-$("#nav").addEventListener("click", e => { const b=e.target.closest("button[data-v]"); if(b) go(b.dataset.v); });
-function go(v, opts){ VIEW=v; KEYH=null; if(v==="train") SESSION=null; render(opts); window.scrollTo(0,0); }
-function render(opts){
-  document.querySelectorAll("#nav button").forEach(b => b.setAttribute("aria-current", b.dataset.v===VIEW ? "page" : "false"));
-  $("#hdrInfo").textContent = META ? `Stand der Daten: ${fmtDate(META.loadedAt.slice(0,10))}` : "";
-  stopClock();
-  ({home:viewHome, train:viewTrain, transfer:viewTransfer, catalog:viewCatalog, data:viewData}[VIEW])(opts);
-}
-function stBadge(s){ return `<span class="st ${s==="?"?"q":s}" title="${esc(STATUS[s].long)}">${s}</span>`; }
-
-/* ---------- Übersicht ---------- */
-function moduleStats(m){
-  const all = ITEMS.filter(i=>i.modul===m);
-  const rel = all.filter(i=>["A","B"].includes(i.status));
-  const tr = rel.filter(trainable);
-  const seen = tr.filter(i=>prog(i.id));
-  const mast = tr.filter(i=>isMastered(prog(i.id)));
-  const due = all.filter(i=>trainable(i) && SET.statuses.includes(i.status) && isDue(i));
-  return {all, rel, tr, seen, mast, due,
-    open: rel.filter(i=>i.offen), unrated: all.filter(i=>i.status==="?"),
-    newAvail: all.filter(i=>trainable(i) && SET.statuses.includes(i.status) && !prog(i.id))};
-}
-function viewHome(){
-  if(!ITEMS.length){
-    main.innerHTML = `<h1>Klausurtraining M1 bis M3</h1>
-      <div class="empty"><p>Noch keine Fragen geladen.</p>
-      <p class="hint">Wähle den Studienordner (Studium bzw. Studium_Cloudkopie). Die App liest je Modul die karten.csv und die Prüfungsebene Pruefung/pruefung_Mx.csv. Es wird nichts hochgeladen, auch wenn der Browser beim Auswählen „hochladen“ schreibt.</p>
-      <div class="row"><button class="btn" id="pick">Studienordner wählen</button><button class="btn quiet" id="pickFiles">Dateien oder Sicherung wählen</button></div></div>`;
-    $("#pick").onclick = pickFolder; $("#pickFiles").onclick = ()=>$("#fileInput").click();
-    return;
-  }
-  const order = Object.keys(MODULES).sort((a,b)=>examOf(a).localeCompare(examOf(b)));
-  let html = `<h1>Bis zur nächsten Klausur</h1><p class="hint">Trainiert werden nur Fragen mit Status ${SET.statuses.join(" und ")}. Fortschritt = Anteil der offiziellen und betonten Fragen, die du sicher beherrschst.</p>`;
-  const lastExp = SET.lastExport ? daysTo(SET.lastExport.slice(0,10)) * -1 : null;
-  if(Object.keys(PROG).length && (lastExp===null || lastExp>7))
-    html += `<div class="note">Dein Lernstand ist nur in diesem Browser gespeichert. ${lastExp===null?"Noch keine Sicherung erstellt.":`Letzte Sicherung vor ${lastExp} Tagen.`} <a href="#" id="toData">Jetzt sichern</a></div>`;
-  for(const m of order){
-    const M = MODULES[m], s = moduleStats(m), d = daysTo(examOf(m));
-    const tot = s.rel.length || 1;
-    const pM = Math.round(s.mast.length/tot*100), pS = Math.round((s.seen.length-s.mast.length)/tot*100);
-    html += `<section class="mod" aria-label="${esc(M.name)}">
-      <div class="mod-head"><h3>${m} ${esc(M.short)}</h3><span class="muted small">${esc(M.doz)}</span>
-        <div class="days">${d>=0?`<b>${d}</b> <span class="small muted">Tage</span>`:`<span class="small muted">vorbei</span>`}<div class="small muted">Klausur ${fmtDate(examOf(m))}</div></div></div>
-      <div class="meter" role="img" aria-label="${pM} Prozent sicher, ${pS} Prozent geübt"><i class="m-sicher" style="width:${pM}%"></i><i class="m-geuebt" style="width:${pS}%"></i></div>
-      <div class="legend"><span><i style="background:var(--ok)"></i>sicher ${s.mast.length}</span><span><i style="background:var(--stB)"></i>geübt ${s.seen.length-s.mast.length}</span><span><i style="background:var(--line)"></i>offen ${s.rel.length-s.seen.length} von ${s.rel.length} A/B-Fragen</span></div>
-      <div class="facts"><span>Heute fällig: <b>${s.due.length}</b></span><span>Neu verfügbar: <b>${s.newAvail.length}</b></span><span>Ohne Musterantwort: <b>${s.open.length}</b></span><span>Unbewertete Karten: <b>${s.unrated.length}</b></span></div>
-      ${s.tr.length<10?`<div class="warn">Nur ${s.tr.length} trainierbare A/B-Fragen. Der Fragenbestand ist hier das Hauptrisiko, nicht das Üben.</div>`:""}
-      ${s.open.length?`<details><summary>${s.open.length} bekannte ${s.open.length===1?"Frage":"Fragen"} ohne Musterantwort</summary><ul class="small">${s.open.slice(0,40).map(i=>`<li>${stBadge(i.status)} ${esc(i.frage)}</li>`).join("")}</ul><p class="hint">Diese Fragen kommen voraussichtlich in der Klausur. Die Antworten werden nach der jeweiligen Vorlesung im Modulchat in pruefung_${m}.csv ergänzt.</p></details>`:""}
-      <p class="small muted" style="margin-top:8px">${esc(M.rule)}</p>
-      <div class="row"><button class="btn" data-train="${m}" ${s.due.length+s.newAvail.length?"":"disabled"}>${m} trainieren</button></div>
-    </section>`;
-  }
-  html += `<div class="row"><button class="btn ghost" data-train="ALL">Alle Module gemischt</button></div>`;
-  main.innerHTML = html;
-  main.querySelectorAll("[data-train]").forEach(b => b.onclick = () => { SESSION=null; VIEW="train"; render({modul:b.dataset.train}); });
-  const td = $("#toData"); if(td) td.onclick = e => { e.preventDefault(); go("data"); };
-}
-
-/* ---------- Training ---------- */
-let SESSION = null, CLOCK = null;
-function stopClock(){ if(CLOCK){ clearInterval(CLOCK); CLOCK=null; } }
-function buildQueue(modul){
-  const pool = ITEMS.filter(i => trainable(i) && SET.statuses.includes(i.status) && (modul==="ALL" || i.modul===modul));
-  const rank = {A:0,B:1,C:2,"?":3};
-  const due = pool.filter(isDue).sort((a,b)=> (prog(a.id).due).localeCompare(prog(b.id).due) || rank[a.status]-rank[b.status]);
-  const room = Math.max(0, SET.newPerDay - newToday());
-  const fresh = pool.filter(i=>!prog(i.id)).sort((a,b)=> rank[a.status]-rank[b.status] || examOf(a.modul).localeCompare(examOf(b.modul)) || a.id.localeCompare(b.id,"de",{numeric:true})).slice(0, room);
-  return [...due, ...fresh].map(i=>i.id);
-}
-function viewTrain(opts={}){
-  KEYH = null;
-  if(!ITEMS.length){ VIEW="home"; return render(); }
-  if(opts.single){ SESSION = {modul:"EINZEL", queue:[opts.single], done:0, single:true}; }
-  if(!SESSION || opts.modul){
-    const modul = opts.modul || "ALL";
-    SESSION = {modul, queue:buildQueue(modul), done:0};
-  }
-  if(!SESSION.queue.length){
-    const m = SESSION.modul;
-    main.innerHTML = `<h1>Für heute erledigt</h1>
-      <div class="empty"><p>${SESSION.done ? `${SESSION.done} Fragen bearbeitet.` : "Keine fälligen oder neuen Fragen für diese Auswahl."}</p>
-      <p class="hint">Neue Fragen pro Tag: ${SET.newPerDay} (heute schon ${newToday()}). Einstellbar unter Daten. Für zusätzliches Üben eine Frage im Fragenkatalog öffnen.</p>
-      <div class="row"><button class="btn" id="back">Zur Übersicht</button><button class="btn quiet" id="more">5 weitere neue Fragen</button></div></div>`;
-    $("#back").onclick = ()=>go("home");
-    $("#more").onclick = ()=>{ SET.newPerDay += 5; save("settings", SET); SESSION=null; render({modul:m==="EINZEL"?"ALL":m}); };
-    return;
-  }
-  const it = ITEMS.find(i=>i.id===SESSION.queue[0]);
-  if(!it){ SESSION.queue.shift(); return viewTrain(); }
-  const p = prog(it.id);
-  const minutes = it.punkte || RICHTZEIT[it.form] || 6;
-  const draft = (load("drafts", {}))[it.id] || "";
-  main.innerHTML = `
-    <div class="progress"><span>${SESSION.single?"Einzelfrage":`Noch ${SESSION.queue.length} in dieser Runde`}</span><span>${SESSION.done} bearbeitet</span><span>${p?`zuletzt ${p.hist.at(-1).p} %`:"neu"}</span></div>
-    <article class="sheet">
-      <div class="margin">
-        <div class="pts">${it.punkte?`${String(it.punkte).replace(".",",")} P.`:`~${minutes}′`}<small>${it.punkte?"bekannt":"Richtzeit"}</small></div>
-        <div class="clock" id="clock" aria-live="off">0:00</div>
-      </div>
-      <div class="body">
-        <div class="meta">${stBadge(it.status)} <span>${esc(STATUS[it.status].label)}</span><span>${it.modul}</span><span>${esc(it.thema)}</span><span>${esc(it.form)}</span></div>
-        <h1 class="q">${esc(it.frage)}</h1>
-        ${it.form==="Zeichnen"?`<p class="hint">Erst auf Papier zeichnen, dann hier die Erläuterung schreiben.</p>`:""}
-        <label class="field"><span>Deine Antwort, wie in der Klausur</span>
-          <textarea id="answer" class="ruled" spellcheck="true" placeholder="Schreiben, dann aufdecken. Strg+Enter deckt auf.">${esc(draft)}</textarea></label>
-        <div class="row" id="preReveal"><button class="btn" id="reveal">Aufdecken</button><button class="btn quiet" id="headOnly">Nur im Kopf beantwortet</button>${SESSION.single?"":`<button class="btn quiet" id="skip">Überspringen</button>`}</div>
-        <div id="post"></div>
-      </div>
-    </article>`;
-  const start = Date.now(), clk = $("#clock");
-  CLOCK = setInterval(()=>{ const s=Math.floor((Date.now()-start)/1000); clk.textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`; clk.classList.toggle("over", s>minutes*60); }, 1000);
-  const ta = $("#answer");
-  ta.addEventListener("input", ()=>{ const d=load("drafts",{}); d[it.id]=ta.value; save("drafts", d); });
-  ta.addEventListener("keydown", e=>{ if(e.key==="Enter" && (e.ctrlKey||e.metaKey)){ e.preventDefault(); doReveal(it); } });
-  $("#reveal").onclick = ()=>doReveal(it);
-  $("#headOnly").onclick = ()=>doReveal(it, true);
-  if($("#skip")) $("#skip").onclick = ()=>{ SESSION.queue.push(SESSION.queue.shift()); viewTrain(); };
-  if(!p && !draft) ta.focus({preventScroll:true});
-}
-async function doReveal(it, headOnly){
-  stopClock();
-  const answer = $("#answer").value.trim();
-  $("#preReveal").remove();
-  const hasKern = it.kern.length>0;
-  const post = $("#post");
-  post.className = "reveal";
-  post.innerHTML = `
-    <section class="correction" aria-label="Korrektur">
-      ${hasKern?`<h3>Korrekturrand: Was steht in deiner Antwort?</h3>
-        <div id="checks">${it.kern.map((k,i)=>`<label class="check"><input type="checkbox" data-i="${i}"><span class="tick" aria-hidden="true">✓</span><span>${esc(k)}</span></label>`).join("")}</div>
-        <div class="score"><b id="scoreVal">0 %</b><span class="muted small" id="scorePts"></span></div>`
-      :`<h3>Selbstbewertung</h3><p class="hint">Für diese Frage sind noch keine Kernelemente hinterlegt. Vergleiche mit der Musterantwort und bewerte ehrlich.</p>`}
-      <div class="grades" role="group" aria-label="Bewertung">
-        <button data-s="0.2">Nicht gewusst<kbd>1</kbd></button>
-        <button data-s="0.6">Lückenhaft<kbd>2</kbd></button>
-        <button data-s="0.85">Weitgehend<kbd>3</kbd></button>
-        <button data-s="1">Vollständig<kbd>4</kbd></button>
-      </div>
-    </section>
-    <div class="ans ${answer?"two":""}">
-      ${answer?`<div class="box"><h3>Deine Antwort</h3><p>${esc(answer)}</p></div>`:""}
-      <div>
-        ${it.mind?`<div class="box"><h3>Mindestantwort (Grundpunkte)</h3><p>${esc(it.mind)}</p></div>`:""}
-        ${it.antwort?`<div class="box" style="margin-top:10px"><h3>${it.mind?"Vollantwort":"Musterantwort"}</h3><p>${esc(it.antwort)}</p></div>`:""}
-      </div>
-    </div>
-    ${it.fehler?`<div class="box fehler" style="margin-top:12px"><h3>Typische Fehler</h3><p>${esc(it.fehler)}</p></div>`:""}
-    <div id="imgBox"></div>
-    <details style="margin-top:10px"><summary>Belege und Hinweise</summary>
-      <p class="small"><b>Klausurrelevanz:</b> ${esc(STATUS[it.status].long)}. ${esc(it.beleg)}</p>
-      ${it.hinweis?`<p class="small"><b>Dozentenhinweis:</b> ${esc(it.hinweis)}</p>`:""}
-      ${it.quelle?`<p class="small"><b>Quelle:</b> ${esc(it.quelle)}</p>`:""}
-      <p class="small muted">ID ${esc(it.id)}${it.karte?" (Karteikarte)":" (Katalogfrage)"}</p>
-    </details>`;
-  if(it.bild){
-    const url = await imageURL(it.bild);
-    $("#imgBox").innerHTML = url ? `<div class="box" style="margin-top:12px"><h3>Tafelbild zum Vergleich</h3><img class="wb" src="${url}" alt="Tafelbild: ${esc(it.frage)}"></div>`
-      : `<p class="hint" style="margin-top:10px">Tafelbild: ${esc(it.bild)}. Zum Anzeigen unter Daten den Studienordner neu einlesen.</p>`;
-  }
-  const buttons = [...post.querySelectorAll(".grades button")];
-  const suggest = score => { const g = gradeOf(score); buttons.forEach((b,i)=>b.classList.toggle("sugg", i===g)); };
-  if(hasKern){
-    const upd = () => {
-      const n = post.querySelectorAll("#checks input:checked").length, sc = n/it.kern.length;
-      $("#scoreVal").textContent = `${Math.round(sc*100)} %`;
-      $("#scorePts").textContent = it.punkte ? `ca. ${String(Math.round(sc*it.punkte*2)/2).replace(".",",")} von ${String(it.punkte).replace(".",",")} Punkten` : `${n} von ${it.kern.length} Kernelementen`;
-      suggest(sc); post.dataset.score = sc;
-    };
-    post.querySelectorAll("#checks input").forEach(c=>c.addEventListener("change", upd)); upd();
-  }
-  const finish = score => {
-    KEYH = null;
-    schedule(it, score);
-    const d=load("drafts",{}); delete d[it.id]; save("drafts", d);
-    SESSION.done++; const id = SESSION.queue.shift();
-    if(score<0.5 && !SESSION.single) SESSION.queue.splice(Math.min(3, SESSION.queue.length), 0, id);
-    if(SESSION.single){ go("catalog"); toast("Bewertung gespeichert."); return; }
-    viewTrain(); window.scrollTo(0,0);
-  };
-  buttons.forEach(b => b.onclick = () => {
-    // Bei Kernelementen zählt die Checkliste, außer du weichst bewusst ab
-    const s = Number(b.dataset.s);
-    const k = post.dataset.score!==undefined ? Number(post.dataset.score) : null;
-    finish(k!==null && gradeOf(k)===gradeOf(s) ? k : s);
-  });
-  KEYH = e => { if(VIEW!=="train" || !buttons[0].isConnected || e.target.tagName==="TEXTAREA" || (e.target.tagName==="INPUT" && e.target.type!=="checkbox")) return; const n=Number(e.key); if(n>=1&&n<=4){ buttons[n-1].click(); } };
-  post.querySelector("#checks input, .grades button")?.focus({preventScroll:true});
-}
-let KEYH = null;
-document.addEventListener("keydown", e => { if(KEYH) KEYH(e); });
-
-/* ---------- Fragenkatalog ---------- */
-let CAT = {modul:"ALL", status:"ALL", q:""};
-function stateLabel(it){
-  if(it.status==="X") return "ausgeschlossen";
-  if(it.offen) return "ohne Antwort";
-  const p = prog(it.id);
-  if(!p) return "neu";
-  if(isMastered(p)) return "sicher";
-  if(isDue(it)) return "fällig";
-  return `wieder ${fmtDate(p.due).slice(0,6)}`;
-}
-function viewCatalog(){
-  if(!ITEMS.length){ VIEW="home"; return render(); }
-  const f = ITEMS.filter(i => (CAT.modul==="ALL"||i.modul===CAT.modul) && (CAT.status==="ALL"||i.status===CAT.status)
-    && (!CAT.q || (i.frage+" "+i.thema+" "+i.antwort).toLowerCase().includes(CAT.q.toLowerCase())));
-  const chip = (k,v,l) => `<button class="chip" data-k="${k}" data-v="${v}" aria-pressed="${CAT[k]===v}">${l}</button>`;
-  main.innerHTML = `<h1>Fragenkatalog</h1>
-    <p class="hint">Alle Fragen mit ihrer Einstufung. A offiziell, B betont, C abgeleitet, X ausgeschlossen, gestrichelt unbewertet. Antippen öffnet die Frage zum Üben.</p>
-    <div class="chips" style="margin:10px 0">${chip("modul","ALL","Alle Module")}${Object.keys(MODULES).sort().map(m=>chip("modul",m,m)).join("")}</div>
-    <div class="chips" style="margin:0 0 10px">${chip("status","ALL","Alle Stufen")}${["A","B","C","X","?"].map(s=>chip("status",s,`${s} ${STATUS[s].label}`)).join("")}</div>
-    <input type="search" id="q" placeholder="Suchen" value="${esc(CAT.q)}" aria-label="Fragen durchsuchen">
-    <p class="small muted" style="margin:10px 0 6px">${f.length} Fragen</p>
-    <div class="list">${f.map(i=>`<div class="li" data-id="${esc(i.id)}" tabindex="0" role="button">
-      ${stBadge(i.status)}<span class="t">${esc(i.frage)}</span><span class="s">${esc(stateLabel(i))}</span>
-      ${i.status==="X"?`<span class="why">${esc(i.beleg)}</span>`:`<span class="why">${i.modul}, ${esc(i.thema)}</span>`}</div>`).join("")}</div>`;
-  main.querySelectorAll(".chip").forEach(c => c.onclick = () => { CAT[c.dataset.k]=c.dataset.v; viewCatalog(); });
-  const q=$("#q"); q.oninput = () => { CAT.q=q.value; const pos=q.selectionStart; viewCatalog(); const n=$("#q"); n.focus(); n.setSelectionRange(pos,pos); };
-  main.querySelectorAll(".li").forEach(li => {
-    const open = () => { const it=ITEMS.find(i=>i.id===li.dataset.id); if(it.offen){ toast("Für diese Frage gibt es noch keine Musterantwort."); return; } VIEW="train"; render({single:it.id}); window.scrollTo(0,0); };
-    li.onclick = open; li.onkeydown = e => { if(e.key==="Enter") open(); };
-  });
-}
-
-/* ---------- Transferaufgaben ---------- */
-let TMODE = {};
-function tget(m){ const d = TRANSFER_DEFAULT[m]; const t = TRANS[m] || {}; return {points: t.points || d.points.slice(), texts: t.texts || {}, hist: t.hist || []}; }
-function tsave(m, t){ TRANS[m] = Object.assign(TRANS[m]||{}, t, {upd:Date.now()}); save("transfer", TRANS); }
-function viewTransfer(){
-  const order = Object.keys(MODULES).sort((a,b)=>examOf(a).localeCompare(examOf(b)));
-  let html = `<h1>Transferaufgaben</h1><p class="hint">Die Transferaufgaben in M2 und M3 sind vorab bekannt und bringen zusammen 21 bis 27 nahezu sichere Punkte. Ausarbeitung einmal sauber schreiben, dann unter Zeitdruck aus dem Kopf wiedergeben. Dasselbe Praxisbeispiel trägt beide Aufgaben.</p>`;
-  for(const m of order){
-    const D = TRANSFER_DEFAULT[m], t = tget(m), mode = TMODE[m] || "view";
-    const filled = t.points.filter(p => (t.texts[p]||"").trim()).length;
-    const last = t.hist.at(-1);
-    html += `<section class="mod" id="tr-${m}"><div class="mod-head"><h3>${m}: ${esc(D.title)}</h3><span class="muted small">${D.punkte} Punkte${m==="M2"?" (9 bis 12)":""}</span></div>
-      <p style="margin-top:8px">${esc(D.task)}</p><p class="small muted">${esc(D.source)}</p>
-      <div class="facts"><span>Ausgearbeitet: <b>${filled} von ${t.points.length}</b> Gliederungspunkten</span><span>Zuletzt geübt: <b>${last?`${fmtDate(last.d)}, ${last.p} %`:"noch nie"}</b></span></div>
-      <div class="row">
-        <button class="btn ${mode==="edit"?"":"ghost"}" data-m="${m}" data-mode="edit">Ausarbeitung bearbeiten</button>
-        <button class="btn ${mode==="drill"?"":"ghost"}" data-m="${m}" data-mode="drill" ${filled?"":"disabled"}>Aus dem Kopf üben</button>
-        <button class="btn quiet" data-m="${m}" data-mode="outline">Gliederung ändern</button>
-        <button class="btn quiet" data-m="${m}" data-mode="md" ${filled?"":"disabled"}>Als Text speichern</button>
-      </div><div class="tbody"></div></section>`;
-  }
-  main.innerHTML = html;
-  main.querySelectorAll("button[data-mode]").forEach(b => b.onclick = () => {
-    const m=b.dataset.m, md=b.dataset.mode;
-    if(md==="md"){ const t=tget(m); download(`Transfer_${m}.md`, `# ${TRANSFER_DEFAULT[m].title}\n\n`+t.points.map(p=>`## ${p}\n\n${t.texts[p]||""}\n`).join("\n"), "text/markdown"); return; }
-    TMODE[m] = TMODE[m]===md ? "view" : md; viewTransfer(); $("#tr-"+m).scrollIntoView({block:"start"});
-  });
-  for(const m of order){
-    const box = $(`#tr-${m} .tbody`), t = tget(m), mode = TMODE[m];
-    if(mode==="edit"){
-      if(!t.points.length){ box.innerHTML = `<p class="hint" style="margin-top:12px">Noch keine Gliederung. Erst über „Gliederung ändern“ die Punkte anlegen.</p>`; continue; }
-      box.innerHTML = t.points.map((p,i)=>`<div class="tp"><h3>${esc(p)}</h3><textarea data-p="${i}" aria-label="${esc(p)}">${esc(t.texts[p]||"")}</textarea></div>`).join("") + `<p class="hint">Wird beim Tippen gespeichert. Deinen Text schreibst du selbst, damit du ihn in der Klausur wiedergeben kannst.</p>`;
-      box.querySelectorAll("textarea").forEach(ta => ta.oninput = () => { const tt=tget(m); tt.texts[tt.points[ta.dataset.p]] = ta.value; tsave(m, {texts:tt.texts, points:tt.points});
-        const n = tt.points.filter(p => (tt.texts[p]||"").trim()).length;
-        $(`#tr-${m} .facts b`).textContent = `${n} von ${tt.points.length}`;
-        $(`#tr-${m}`).querySelectorAll('[data-mode="drill"],[data-mode="md"]').forEach(b => b.disabled = !n); });
-    }else if(mode==="outline"){
-      box.innerHTML = `<label class="field"><span>Ein Gliederungspunkt pro Zeile</span><textarea id="ol-${m}">${esc(t.points.join("\n"))}</textarea></label><button class="btn" id="olSave-${m}">Gliederung übernehmen</button>`;
-      $(`#olSave-${m}`).onclick = () => { const pts=$(`#ol-${m}`).value.split("\n").map(s=>s.trim()).filter(Boolean); tsave(m, {points:pts, texts:tget(m).texts}); TMODE[m]="edit"; viewTransfer(); toast("Gliederung übernommen."); };
-    }else if(mode==="drill"){
-      const D = TRANSFER_DEFAULT[m];
-      box.innerHTML = `<div class="note" style="margin-top:12px">Zeitvorgabe ${D.punkte} Minuten. <span id="tclk-${m}">0:00</span></div>` +
-        t.points.map((p,i)=>`<div class="tp"><h3>${esc(p)}</h3><textarea class="ruled" data-p="${i}" aria-label="${esc(p)}"></textarea><div class="cmp" hidden></div></div>`).join("") +
-        `<button class="btn" id="tcheck-${m}">Mit Ausarbeitung vergleichen</button><div id="tres-${m}"></div>`;
-      const st=Date.now(), el=$(`#tclk-${m}`);
-      stopClock(); CLOCK = setInterval(()=>{ const s=Math.floor((Date.now()-st)/1000); el.textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`; el.style.color = s>D.punkte*60 ? "var(--red)" : ""; },1000);
-      $(`#tcheck-${m}`).onclick = () => {
-        stopClock();
-        box.querySelectorAll(".tp").forEach((tp,i)=>{ const c=tp.querySelector(".cmp"); c.hidden=false;
-          c.innerHTML = `<div class="box" style="margin-top:8px"><h3>Deine Ausarbeitung</h3><p>${esc(t.texts[t.points[i]]||"(leer)")}</p></div><label class="check"><input type="checkbox" class="tok"><span class="tick" aria-hidden="true">✓</span><span>Kern dieses Punktes getroffen</span></label>`; });
-        $(`#tcheck-${m}`).remove();
-        $(`#tres-${m}`).innerHTML = `<button class="btn" id="tsave-${m}" style="margin-top:12px">Ergebnis speichern</button>`;
-        $(`#tsave-${m}`).onclick = () => { const all=box.querySelectorAll(".tok"), ok=box.querySelectorAll(".tok:checked").length; const pc=Math.round(ok/all.length*100);
-          const tt=tget(m); tt.hist.push({d:todayStr(), p:pc}); tsave(m,{hist:tt.hist, points:tt.points, texts:tt.texts}); TMODE[m]="view"; viewTransfer(); toast(`Gespeichert: ${pc} % der Punkte getroffen.`); };
-      };
+    await waitFor(() => window.google && google.accounts && google.accounts.oauth2, 8000);
+    if(!tokenClient){
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: cid, scope: SCOPE,
+        callback: r => {
+          if(r.error){ out("Test A: FEHLER bei der Anmeldung: " + r.error + (r.error_description ? " (" + r.error_description + ")" : ""), "bad"); return; }
+          token = r.access_token; enable(true);
+          out("Test A: ERFOLG. Angemeldet, Zugriff gültig für ca. " + Math.round((r.expires_in||3600)/60) + " Minuten.", "ok");
+        },
+        error_callback: e => out("Test A: FEHLER " + (e && (e.type || e.message) || e), "bad")
+      });
     }
-  }
-}
+    tokenClient.requestAccessToken({prompt: ""});
+  }catch(e){ out("Test A: FEHLER " + e.message, "bad"); }
+};
 
-/* ---------- Daten ---------- */
-function exportBackup(){
-  const data = {app:"Klausurtrainer", version:1, exported:new Date().toISOString(), items:ITEMS, meta:META, progress:PROG, transfer:TRANS, settings:SET};
-  SET.lastExport = data.exported; save("settings", SET); data.settings = SET;
-  download(`lernapp_sicherung_${todayStr()}.json`, JSON.stringify(data));
-  toast("Sicherung erstellt. Datei in den Studienordner oder nach Google Drive legen.");
+async function api(url, opt={}){
+  const r = await fetch(url, Object.assign({}, opt, {headers: Object.assign({Authorization: "Bearer " + token}, opt.headers||{})}));
+  if(!r.ok){ const t = await r.text(); throw new Error("HTTP " + r.status + ": " + t.slice(0,300)); }
+  return r;
 }
-function importBackup(text){
-  let d; try{ d = JSON.parse(text); }catch(e){ toast("Die Datei ist keine gültige Sicherung."); return; }
-  if(d.app!=="Klausurtrainer"){ toast("Die Datei ist keine Sicherung dieser App."); return; }
-  let merged=0;
-  for(const [id,p] of Object.entries(d.progress||{})){ if(!PROG[id] || (p.upd||0) > (PROG[id].upd||0)){ PROG[id]=p; merged++; } }
-  for(const [m,t] of Object.entries(d.transfer||{})){ if(!TRANS[m] || (t.upd||0) > (TRANS[m].upd||0)) TRANS[m]=t; }
-  const newer = d.meta && (!META || d.meta.loadedAt > META.loadedAt);
-  if(d.items && d.items.length && (newer || !ITEMS.length)){ ITEMS=d.items; META=d.meta; save("items",ITEMS); save("meta",META); }
-  if(d.settings){ SET.newPerDay=d.settings.newPerDay??SET.newPerDay; SET.statuses=d.settings.statuses||SET.statuses; SET.exams=Object.assign({}, d.settings.exams, SET.exams); }
-  save("prog",PROG); save("transfer",TRANS); save("settings",SET);
-  toast(`Sicherung übernommen: ${merged} Lernstände aktualisiert${newer?", Fragen aktualisiert":""}.`);
-  render();
+async function findTestFile(){
+  const q = encodeURIComponent("name='" + TESTNAME + "' and trashed=false");
+  const r = await api("https://www.googleapis.com/drive/v3/files?q=" + q + "&spaces=drive&fields=files(id,name,modifiedTime)");
+  return (await r.json()).files[0] || null;
 }
-function viewData(){
-  const st = s => `<button class="chip" data-st="${s}" aria-pressed="${SET.statuses.includes(s)}">${s} ${STATUS[s].label}</button>`;
-  main.innerHTML = `<h1>Daten und Einstellungen</h1>
-    <h2>Fragen einlesen</h2>
-    <p class="hint">Am PC den Studienordner wählen. Gelesen werden je Modul nur karten.csv und Pruefung/pruefung_Mx.csv, für Tafelbilder zusätzlich die Bilddateien. Nichts wird hochgeladen.</p>
-    <div class="row"><button class="btn" id="reload">Studienordner neu einlesen</button><button class="btn quiet" id="pick">Anderen Ordner wählen</button><button class="btn quiet" id="files">Dateien oder Sicherung wählen</button></div>
-    ${META?`<table class="t" style="margin-top:12px"><tr><th>Stand</th><td>${new Date(META.loadedAt).toLocaleString("de-DE")} aus ${esc(META.source)}</td></tr>
-      <tr><th>Inhalt</th><td>${ITEMS.length} Fragen: ${META.cards} Karteikarten, ${META.meta} Einträge in der Prüfungsebene</td></tr>
-      ${(META.files||[]).length?`<tr><th>Dateien</th><td class="small">${META.files.map(esc).join("<br>")}</td></tr>`:""}</table>
-      ${META.warnings&&META.warnings.length?`<details open><summary>${META.warnings.length} Hinweise beim Einlesen</summary><ul class="small">${META.warnings.map(w=>`<li>${esc(w)}</li>`).join("")}</ul></details>`:`<p class="small muted">Keine Auffälligkeiten beim Einlesen.</p>`}`:""}
-    <h2>Sicherung und Handy</h2>
-    <p class="hint">Der Lernstand liegt nur in diesem Browser. Die Sicherung enthält Fragen, Lernstand und Transfer-Ausarbeitungen. Auf dem Handy dieselbe Datei über „Dateien oder Sicherung wählen“ öffnen. Beim Zurückspielen gewinnt je Frage der neuere Lernstand.</p>
-    <div class="row"><button class="btn" id="exp">Sicherung herunterladen</button><span class="small muted">${SET.lastExport?`Letzte Sicherung ${new Date(SET.lastExport).toLocaleString("de-DE")}`:"Noch keine Sicherung"}</span></div>
-    <h2>Training</h2>
-    <p class="small muted">Welche Stufen trainiert werden</p><div class="chips">${["A","B","C","?"].map(st).join("")}</div>
-    <label class="field" style="max-width:240px"><span>Neue Fragen pro Tag</span><input type="number" id="npd" min="1" max="60" value="${SET.newPerDay}"></label>
-    <h2>Klausurtermine</h2>
-    <p class="hint">Die Wiederholungsplanung legt die letzte Wiederholung spätestens zwei Tage vor die Klausur. Bei Terminänderung hier anpassen.</p>
-    ${Object.keys(MODULES).sort().map(m=>`<label class="field" style="max-width:280px"><span>${m} ${esc(MODULES[m].short)}</span><input type="date" data-exam="${m}" value="${examOf(m)}"></label>`).join("")}
-    <h2>Darstellung</h2>
-    <div class="chips">${[["auto","Wie System"],["light","Hell"],["dark","Dunkel"]].map(([v,l])=>`<button class="chip" data-theme="${v}" aria-pressed="${SET.theme===v}">${l}</button>`).join("")}</div>
-    <h2>Zurücksetzen</h2>
-    <div class="row"><button class="btn quiet" id="resetProg">Lernstand löschen</button></div>
-    <p class="small muted" style="margin-top:24px">Version ${VERSION}</p>`;
-  $("#reload").onclick = reloadFolder; $("#pick").onclick = pickFolder; $("#files").onclick = ()=>$("#fileInput").click();
-  $("#exp").onclick = exportBackup;
-  main.querySelectorAll("[data-st]").forEach(c => c.onclick = () => { const s=c.dataset.st; SET.statuses = SET.statuses.includes(s) ? SET.statuses.filter(x=>x!==s) : SET.statuses.concat(s); if(!SET.statuses.length) SET.statuses=["A"]; save("settings",SET); viewData(); });
-  $("#npd").onchange = e => { SET.newPerDay = Math.max(1, Math.min(60, Number(e.target.value)||10)); save("settings",SET); };
-  main.querySelectorAll("[data-exam]").forEach(i => i.onchange = () => { SET.exams[i.dataset.exam] = i.value; save("settings",SET); toast("Termin gespeichert."); });
-  main.querySelectorAll("[data-theme]").forEach(c => c.onclick = () => { SET.theme=c.dataset.theme; save("settings",SET); applyTheme(); viewData(); });
-  $("#resetProg").onclick = () => { if(confirm("Gesamten Lernstand in diesem Browser löschen? Eine Sicherung bleibt davon unberührt.")){ PROG={}; save("prog",PROG); toast("Lernstand gelöscht."); viewData(); } };
-}
-function applyTheme(){ if(SET.theme==="auto") document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme", SET.theme); }
+$("read").onclick = async () => {
+  try{
+    const f = await findTestFile();
+    if(!f){ out("Test B Lesen: Keine Testdatei gefunden. Erst auf einem Gerät „Schreiben“.", "bad"); return; }
+    const d = await (await api("https://www.googleapis.com/drive/v3/files/" + f.id + "?alt=media")).json();
+    out("Test B Lesen: ERFOLG. Zähler " + d.zaehler + ", zuletzt geschrieben von " + d.geraet + " am " + d.zeit + ".", "ok");
+  }catch(e){ out("Test B Lesen: FEHLER " + e.message, "bad"); }
+};
+$("write").onclick = async () => {
+  try{
+    const f = await findTestFile();
+    let n = 0;
+    if(f){ try{ n = (await (await api("https://www.googleapis.com/drive/v3/files/" + f.id + "?alt=media")).json()).zaehler || 0; }catch(e){} }
+    const body = JSON.stringify({zaehler: n+1, geraet: device + (brave ? ", Brave" : ""), zeit: new Date().toLocaleString("de-DE")});
+    if(f){
+      await api("https://www.googleapis.com/upload/drive/v3/files/" + f.id + "?uploadType=media", {method:"PATCH", headers:{"Content-Type":"application/json"}, body});
+    }else{
+      const fd = new FormData();
+      fd.append("metadata", new Blob([JSON.stringify({name:TESTNAME, mimeType:"application/json"})], {type:"application/json"}));
+      fd.append("file", new Blob([body], {type:"application/json"}));
+      await api("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", {method:"POST", body: fd});
+    }
+    out("Test B Schreiben: ERFOLG. Zähler jetzt " + (n+1) + ".", "ok");
+  }catch(e){ out("Test B Schreiben: FEHLER " + e.message, "bad"); }
+};
 
-/* ============================================================
-   Start
-   ============================================================ */
-applyTheme();
-(async () => { if(!DIR){ const h = await idbGet("dir"); if(h){ try{ if(await h.queryPermission({mode:"read"})==="granted") DIR=h; }catch(e){} } } })();
-if(location.protocol.startsWith("http") && "serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
-render();
-window.KT = {buildItems, ingest, schedule, parseCSV, get items(){return ITEMS;}, get prog(){return PROG;}};
+async function listChildren(id){
+  const q = encodeURIComponent("'" + id + "' in parents and trashed=false");
+  const r = await api("https://www.googleapis.com/drive/v3/files?q=" + q + "&spaces=drive&pageSize=200&fields=files(id,name,mimeType)");
+  return (await r.json()).files;
+}
+async function readStudy(folderId, label){
+  try{
+    const top = await listChildren(folderId);
+    out(label + ": Im Ordner sichtbar: " + top.length + " Einträge" + (top.length ? " (z. B. " + top.slice(0,4).map(f=>f.name).join(", ") + ")" : "") + ".", top.length ? "ok" : "bad");
+    const m3 = top.find(f => /^03_/.test(f.name));
+    if(!m3){ out(label + ": Unterordner 03_… nicht sichtbar. Die Freigabe gilt dann nur für den Ordner selbst, nicht für seinen Inhalt.", "bad"); return; }
+    const inner = await listChildren(m3.id);
+    const k = inner.find(f => f.name === "karten.csv");
+    if(!k){ out(label + ": karten.csv in 03_… nicht sichtbar (" + inner.length + " Einträge sichtbar).", "bad"); return; }
+    const txt = await (await api("https://www.googleapis.com/drive/v3/files/" + k.id + "?alt=media")).text();
+    out(label + ": ERFOLG. karten.csv von M3 gelesen, " + (txt.trim().split("\n").length - 1) + " Karten.", "ok");
+  }catch(e){ out(label + ": FEHLER " + e.message, "bad"); }
+}
+$("pick").onclick = async () => {
+  const key = lsGet("key"), app = lsGet("app");
+  if(!key || !app){ out("Test C: API-Schlüssel und Projektnummer fehlen.", "bad"); $("cfgBox").open = true; return; }
+  try{
+    await waitFor(() => window.gapi, 8000);
+    await new Promise(res => gapi.load("picker", res));
+    const view = new google.picker.DocsView(google.picker.ViewId.FOLDERS).setIncludeFolders(true).setSelectFolderEnabled(true).setMimeTypes("application/vnd.google-apps.folder");
+    const picker = new google.picker.PickerBuilder()
+      .addView(view).setOAuthToken(token).setDeveloperKey(key).setAppId(app).setLocale("de")
+      .setTitle("Studium_Cloudkopie auswählen")
+      .setCallback(async d => {
+        if(d.action === google.picker.Action.PICKED){
+          const f = d.docs[0]; lsSet("folder", f.id);
+          out("Test C: Ordner gewählt: " + f.name);
+          await readStudy(f.id, "Test C");
+        }else if(d.action === google.picker.Action.CANCEL){ out("Test C: Auswahl abgebrochen."); }
+      }).build();
+    picker.setVisible(true);
+  }catch(e){ out("Test C: FEHLER " + e.message, "bad"); }
+};
+$("reread").onclick = async () => {
+  const id = lsGet("folder");
+  if(!id){ out("Test C2: Noch kein Ordner freigegeben.", "bad"); return; }
+  await readStudy(id, "Test C2 (ohne neue Auswahl)");
+};
+$("copy").onclick = async () => {
+  try{ await navigator.clipboard.writeText(log.innerText); out("Ergebnis kopiert."); }
+  catch(e){ const r=document.createRange(); r.selectNodeContents(log); const s=getSelection(); s.removeAllRanges(); s.addRange(r); out("Text ist markiert, bitte kopieren."); }
+};
 </script>
 </body>
 </html>
