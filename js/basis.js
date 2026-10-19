@@ -2,7 +2,7 @@
 /* ============================================================
    Konfiguration
    ============================================================ */
-const VERSION = "1.4.0 (19.10.2026)";
+const VERSION = "1.4.1 (19.10.2026)";
 const SCOPE = "https://www.googleapis.com/auth/drive.file";
 const DRIVE = "https://www.googleapis.com/drive/v3";
 const UPLOAD = "https://www.googleapis.com/upload/drive/v3";

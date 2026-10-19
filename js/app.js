@@ -7,11 +7,11 @@
 const AREA = {heute:"heute", kalender:"kalender", home:"lernen", train:"lernen", errors:"lernen", sim:"lernen",
   transfer:"lernen", catalog:"lernen", stats:"statistik", data:"einstellungen"};
 const VIEWS = {heute:viewHeute, kalender:viewKalender, home:viewHome, train:viewTrain, errors:viewErrors, sim:viewSim,
-  transfer:viewTransfer, catalog:viewCatalog, stats:viewStats, data:viewEinstellungen};
+  transfer:viewTransfer, catalog:viewCatalog, stats:viewStatistik, data:viewEinstellungen};
 
 function go(v, opts){
   zeitTakt();
-  if(v==="home" && ORIGIN==="heute") v = "heute";   // Training von „Heute“ aus gestartet: dorthin zurück
+  if(v==="home" && ORIGIN) v = ORIGIN;   // Training von „Heute“ oder „Statistik“ aus gestartet: dorthin zurück
   if(v!=="train") ORIGIN = null;
   if(!VIEWS[v]) v = "heute";
   VIEW=v; KEYH=null; if(v==="train" && !(opts && opts.keep)) SESSION=null; render(opts); window.scrollTo(0,0);

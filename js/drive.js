@@ -100,7 +100,7 @@ async function writeJSON(id, name, parent, obj){
 }
 
 /* ---------- Abgleich (Lastenheft G3, G4) ---------- */
-function stateObj(){ return {app:"Klausurtrainer", typ:"lernstand", version:2, geaendert:new Date().toISOString(), geraet:DEVICE, prog:PROG, transfer:TRANS, sims:SIMS, settings:SET}; }
+function stateObj(){ return {app:"Klausurtrainer", typ:"lernstand", version:2, geaendert:new Date().toISOString(), geraet:DEVICE, prog:PROG, transfer:TRANS, sims:SIMS, settings:SET, zeit:lsGet("zeit", {})}; }
 function mergeIn(remote){
   let lc=false, rw=false;
   const rp = remote.prog || {};
@@ -116,6 +116,11 @@ function mergeIn(remote){
   const rset = remote.settings;
   if(rset && (rset.upd||0) > (SET.upd||0)){ SET = Object.assign({statuses:["A","B"], exams:{}}, rset); lc=true; }
   else if(!rset || (SET.upd||0) > (rset.upd||0)) rw=true;
+  // Lernzeit (ab 1.4.1): je Tag und Gerät, es gilt der größere Wert. Ältere Stände ohne „zeit“ verlieren nichts.
+  const rz = remote.zeit || {}, lz = lsGet("zeit", {}); let zc = false;
+  for(const d in rz) for(const g in (rz[d] || {})){ const v = Number(rz[d][g]) || 0; if(!lz[d]) lz[d] = {}; if(v > (Number(lz[d][g]) || 0)){ lz[d][g] = v; zc = true; } }
+  for(const d in lz) for(const g in lz[d]) if((Number(lz[d][g]) || 0) > (Number((rz[d] || {})[g]) || 0)) rw = true;
+  if(zc) lsSet("zeit", lz);
   return {lc, rw};
 }
 let SYNCING=false, SYNC_AGAIN=null, SYNC_TIMER=null;

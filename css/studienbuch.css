@@ -157,3 +157,41 @@ body.focus main,body:has(#tm) main{padding-bottom:96px}
 .capOpt{min-height:104px;border:1px solid var(--rule);border-radius:12px;background:var(--surf);color:var(--head);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font:700 .95rem/1.2 var(--f);cursor:pointer}
 .capOpt.main{background:var(--acc);border-color:var(--acc);color:var(--onAcc)}
 .capOpt:disabled{opacity:.45;cursor:not-allowed}
+
+/* ---------- Statistik „Lernjournal“ (Paket 2, Lastenheft H6, Variante C) ---------- */
+.stat{display:flex;flex-direction:column;gap:26px;max-width:1100px}
+.shead{display:flex;flex-direction:column;gap:4px}
+.shead .kicker{letter-spacing:.1em}
+.shead h1{font-size:1.9rem;line-height:1.15;margin:0}
+.shead h1 em{font-style:italic}
+@media(min-width:720px){ .shead h1{font-size:2.5rem;line-height:1.1} }
+.scols{display:flex;flex-wrap:wrap;gap:26px 28px;align-items:flex-start}
+.scol{flex:1 1 340px;min-width:0;display:flex;flex-direction:column;gap:26px}
+.sbox{background:var(--surf);border:1px solid var(--rule);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.cal-h,.cal,.sdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.cal-h,.sdays{font-size:.7rem;color:var(--muted);text-align:center}
+.cal span{height:30px;border-radius:6px;background:var(--line)}
+.cal .c1{background:var(--p3)}
+.cal .c2{background:var(--p6)}
+.cal .cz{background:transparent;border:1px dashed var(--rule)}
+.cal .ch{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--gold)}
+.snums{display:flex;flex-wrap:wrap;gap:8px 24px}
+.snums>div{display:flex;flex-direction:column}
+.snums strong{font:400 1.75rem/1.15 var(--serif);color:var(--head)}
+.snums span{font-size:.75rem;color:var(--muted)}
+.sbars{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;align-items:end;height:90px}
+.sbars span{display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.sbars i{display:block;width:100%}
+.svor{background:var(--surf);border:1px solid var(--rule);border-radius:10px;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));text-align:center}
+.svor>div{padding:10px 0;display:flex;flex-direction:column;gap:2px;border-right:1px solid var(--line)}
+.svor>div:last-child{border-right:0}
+.svor span{font-size:.7rem;color:var(--muted)}
+.svor strong{font-size:1rem;color:var(--head)}
+.sweak{margin:0;padding:0 0 0 20px;display:flex;flex-direction:column;gap:8px;font-size:.9rem;line-height:1.4}
+.sdet{border-top:1px solid var(--rule);padding-top:6px}
+.sdet>summary{font-weight:600;color:var(--head);min-height:44px;display:flex;align-items:center}
+.sdet h2:first-of-type{margin-top:16px}
+.sdet>summary{cursor:pointer;list-style:none;gap:8px}
+.sdet>summary::-webkit-details-marker{display:none}
+.sdet>summary::before{content:"";flex:0 0 auto;width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);margin-right:4px;transition:transform .15s}
+.sdet[open]>summary::before{transform:rotate(45deg)}
