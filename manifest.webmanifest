@@ -1,13 +1,14 @@
 {
-  "name": "Klausurtrainer Soziale Arbeit",
-  "short_name": "Klausurtrainer",
+  "name": "Studienbuch Soziale Arbeit",
+  "short_name": "Studienbuch",
+  "description": "Lernen, Kalender und Erfassen für das Studium Soziale Arbeit (FOM)",
   "lang": "de",
   "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#F3F4F7",
-  "theme_color": "#1D2431",
+  "background_color": "#F3F1EC",
+  "theme_color": "#13294B",
   "icons": [
     {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
     {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},

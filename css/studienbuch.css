@@ -1,0 +1,159 @@
+/* Studienbuch 1.4 (Lastenheft H1, H2, H9): Rahmen mit Seitenleiste (PC), Kopf und Leiste unten (Handy),
+   Unterreiter in „Lernen“, Startseite „Heute“, Erfassen-Fenster. Breiten: Handy bis 719 px, Tablet 720–959 px, PC ab 960 px. */
+:root{
+  --m4:#4F6F8C;--tabH:72px;
+  --tab:#FFFFFF;--tabLine:#DDD8CC;--tabOn:#13294B;--tabOff:#4A5568;
+  --fab:#13294B;--fabInk:#FFFFFF;--fabShadow:0 0 0 2px #C9A227,0 8px 18px rgba(19,41,75,.25);
+  --side:#13294B;--sideOn:#FFFFFF;--sideOff:#C9D3E3;--sideLine:transparent;--capBg:#E3C35A;--capInk:#13294B;
+  --shade:rgba(15,27,45,.45);--grip:#C8C1B2;
+}
+:root[data-theme="dark"]{
+  --m4:#C9D6E2;
+  --tab:#0A1424;--tabLine:#24365A;--tabOn:#F4F1EA;--tabOff:#A9B6CC;
+  --fab:#E3C35A;--fabInk:#13294B;--fabShadow:0 8px 18px rgba(0,0,0,.4);
+  --side:#0A1424;--sideOn:#F4F1EA;--sideOff:#A9B6CC;--sideLine:#24365A;
+  --shade:rgba(0,0,0,.55);--grip:#3A4E78;
+}
+/* M4 Taubenblau (H9): nur Kalender, Erfassen, Modulseiten */
+.mx-M4{--mbg:#DDE6EE;--mink:#1F3A52;--msub:#3E5A73;--mmot:#4F6F8C;--mline:#C5D3E0;--mpage:var(--m4);--r3:#4F6F8C}
+[data-theme="dark"] .mx-M4{--mbg:#C9D6E2;--mink:#16304A;--msub:#2E4A66;--mmot:#16304A;--mline:#C9D6E2;--r3:#C9D6E2}
+
+[hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- Grundrahmen ---------- */
+.shell{min-height:100vh;min-height:100dvh}
+.col{min-width:0}
+main{max-width:1180px;margin:0 auto;overflow-x:clip;
+  padding:20px max(16px,env(safe-area-inset-left)) calc(var(--tabH) + 40px + env(safe-area-inset-bottom))}
+@media(min-width:720px){ main{padding:28px max(32px,env(safe-area-inset-left)) calc(var(--tabH) + 48px + env(safe-area-inset-bottom))} }
+
+/* ---------- Kopf (Handy und Tablet) ---------- */
+.hdr{position:sticky;top:0;z-index:10;background:var(--hdr);color:var(--hdrText);border-bottom:1px solid var(--hdrLine)}
+.bar{display:flex;align-items:center;gap:4px;min-height:56px;padding:4px max(8px,env(safe-area-inset-right)) 4px max(16px,env(safe-area-inset-left))}
+.brand{font:600 1.25rem/1.2 var(--serif);white-space:nowrap;letter-spacing:-.005em}
+.hdate{font-size:.8rem;color:var(--hdrMuted);white-space:nowrap;margin-left:10px;padding-top:3px}
+.sp{flex:1 1 auto}
+.iconBtn{width:44px;height:44px;border:0;background:none;color:inherit;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;cursor:pointer;flex:0 0 auto}
+.hdr .iconBtn{color:var(--hdrMuted)}
+.hdr .iconBtn:hover{color:var(--hdrText)}
+.hdr .iconBtn[aria-current="page"]{color:var(--gold)}
+.pill{display:inline-flex;align-items:center;gap:8px;min-height:40px;border:1px solid var(--hdrLine);border-radius:999px;padding:4px 14px 4px 12px;font:500 .8rem/1.2 var(--f);color:var(--hdrMuted);background:transparent;cursor:pointer;max-width:240px;min-width:0}
+.pill:hover{color:var(--hdrText)}
+.pill i{flex:0 0 8px;width:8px;height:8px;border-radius:50%;background:var(--hdrMuted)}
+.pill span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pill[data-s="ok"] i{background:#4ADE80} .pill[data-s="busy"] i{background:var(--gold)}
+.pill[data-s="auth"] i,.pill[data-s="err"] i{background:#F87171} .pill[data-s="off"] i{background:var(--hdrMuted)}
+@media(max-width:719px){ .hdr .pill{max-width:150px;padding:4px 10px;font-size:.75rem} }
+@media(max-width:479px){
+  .hdr .pill{width:40px;padding:0;justify-content:center;border-color:transparent}
+  .hdr .pill span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .hdr .pill i{flex-basis:10px;width:10px;height:10px}
+}
+@media(max-width:339px){ .hdate{display:none} }
+
+/* ---------- Unterreiter in „Lernen“ ---------- */
+.subnav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;max-width:1180px;margin:0 auto;padding:4px max(8px,env(safe-area-inset-left)) 0;border-bottom:1px solid var(--rule)}
+.subnav::-webkit-scrollbar{display:none}
+.subnav button{flex:0 0 auto;min-height:46px;padding:0 12px;border:0;border-bottom:2px solid transparent;background:none;color:var(--muted);font:500 .92rem/1.2 var(--f);cursor:pointer;white-space:nowrap}
+.subnav button:hover{color:var(--text)}
+.subnav button[aria-current="page"]{color:var(--head);border-bottom-color:var(--gold);font-weight:700}
+@media(min-width:720px){ .subnav{padding:4px 20px 0} }
+
+/* ---------- Leiste unten (Handy und Tablet) ---------- */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;height:calc(var(--tabH) + env(safe-area-inset-bottom));padding:0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  background:var(--tab);border-top:1px solid var(--tabLine);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:center}
+.tabbar>button{position:relative;height:var(--tabH);border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--tabOff);font:500 .75rem/1.2 var(--f);cursor:pointer;min-width:0}
+.tabbar>button[aria-current="page"]{color:var(--tabOn);font-weight:700}
+.tbar{position:absolute;top:0;width:32px;height:3px;border-radius:0 0 3px 3px}
+.tabbar>button[aria-current="page"] .tbar{background:var(--gold)}
+.fabwrap{display:flex;justify-content:center}
+.fab{width:60px;height:60px;margin-top:-26px;border-radius:50%;border:3px solid var(--bg);background:var(--fab);color:var(--fabInk);display:flex;align-items:center;justify-content:center;box-shadow:var(--fabShadow);cursor:pointer}
+.fab:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.toast{bottom:calc(var(--tabH) + 16px + env(safe-area-inset-bottom))}
+
+/* Training und laufende Simulation: keine Leiste (Bewertungsleiste unten bleibt frei) */
+body.focus .tabbar,body:has(#tm) .tabbar{display:none}
+body.focus .toast,body:has(#tm) .toast{bottom:22px}
+body.focus main,body:has(#tm) main{padding-bottom:96px}
+@media(max-width:719px){ body.focus .subnav{display:none} }
+
+/* Uhr der Simulation: unter dem Kopf kleben (Kopf 56 px, am PC kein Kopf) */
+.timer{top:64px}
+@media(max-width:719px){ .timer{top:56px} }
+
+/* ---------- Seitenleiste (PC ab 960 px) ---------- */
+.side{display:none}
+.side .brand{font-size:1.5rem;padding:0 12px 16px}
+.capBtn{margin:0 0 14px;min-height:48px;font:700 .95rem/1 var(--f);border:0;border-radius:8px;background:var(--capBg);color:var(--capInk);display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.capBtn:hover{filter:brightness(1.05)}
+.sidenav{display:flex;flex-direction:column;gap:6px}
+.sidenav button,.sidelink{min-height:44px;padding:0 12px;border:0;border-radius:8px;background:none;display:flex;align-items:center;gap:12px;color:var(--sideOff);font:500 .95rem/1.2 var(--f);cursor:pointer;text-align:left}
+.sidenav button:hover,.sidelink:hover{color:var(--sideOn);background:rgba(255,255,255,.05)}
+.sidenav button[aria-current="page"],.sidelink[aria-current="page"]{background:rgba(255,255,255,.1);box-shadow:inset 3px 0 0 #E3C35A;color:var(--sideOn);font-weight:700}
+.sidefoot{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding-top:16px}
+.sidefoot .pill{max-width:100%}
+.sidetools{display:flex;align-items:center;gap:4px}
+.sidetools .iconBtn{color:var(--sideOff)}
+.sidetools .iconBtn:hover{color:var(--sideOn)}
+.sidetools .sidelink{flex:1 1 auto}
+.sidever{padding:0 12px;color:#A9B6CC}
+@media(min-width:960px){
+  .shell{display:grid;grid-template-columns:232px minmax(0,1fr)}
+  .side{display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh;height:100dvh;overflow-y:auto;background:var(--side);color:var(--sideOn);padding:24px 16px;border-right:1px solid var(--sideLine)}
+  .hdr,.tabbar{display:none}
+  main,body.focus main{padding:32px 40px 64px}
+  .subnav{padding:8px 28px 0}
+  .toast{bottom:22px}
+  .timer{top:12px}
+}
+
+/* ---------- Startseite „Heute“ ---------- */
+.heute{display:flex;flex-direction:column;gap:22px;max-width:1100px}
+.heute>.note,.heute>.warn{margin:0}
+.hhead{display:flex;flex-direction:column;gap:2px}
+.hhead .kicker{letter-spacing:.12em}
+.hhead h1{font-size:2.5rem;line-height:1.1;margin:0}
+.hhead h1 em{font-style:italic}
+@media(max-width:719px){ .hhead{display:none} }
+.hcols{display:flex;flex-wrap:wrap;gap:22px 28px;align-items:flex-start}
+.hcol{flex:1 1 340px;min-width:0;display:flex;flex-direction:column;gap:22px}
+.hcol:empty{display:none}
+.tile{display:flex;flex-direction:column;gap:8px}
+.tile .kicker{font-size:.75rem;letter-spacing:.1em}
+.tile-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.tile-n{font:500 1.25rem/1.2 var(--serif);color:var(--head)}
+.tlist{background:var(--surf);border:1px solid var(--rule);border-radius:10px;display:flex;flex-direction:column;overflow:hidden}
+.trow{width:100%;min-height:52px;padding:0 14px;display:flex;align-items:center;gap:12px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--text);font:400 .95rem/1.3 var(--f);cursor:pointer;text-align:left}
+[data-theme="dark"] .trow{border-bottom-color:var(--rule)}
+.trow:last-child{border-bottom:0}
+.trow:hover:not(:disabled){background:var(--bg)}
+.trow:disabled{cursor:default;color:var(--muted)}
+.trow .sw{flex:0 0 10px;width:10px;height:28px;border-radius:2px;background:var(--mbg);border:1px solid var(--r3)}
+[data-theme="dark"] .trow .sw{border-color:var(--mbg)}
+.trow .tl{flex:1 1 auto;min-width:0}
+.trow strong{font-weight:700}
+.trow .chev{color:var(--muted)}
+.trow:disabled .chev{visibility:hidden}
+.btn.big{min-height:52px;gap:10px}
+.cd{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.cdb{background:var(--mbg);color:var(--mink);border-radius:4px 10px 10px 4px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.cdb span{font-size:.75rem;font-weight:600;color:var(--msub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cdb span:last-child{font-size:.7rem;font-weight:500}
+.cdb strong{font:400 1.9rem/1 var(--serif)}
+@media(min-width:960px){ .cd{gap:10px} .cdb{padding:12px 14px} .cdb strong{font-size:2.25rem} }
+.hfoot{margin:0}
+
+/* ---------- Erfassen: Fenster von unten ---------- */
+.sheetBack{position:fixed;inset:0;z-index:40;background:var(--shade);display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:560px;background:var(--bg);border-radius:20px 20px 0 0;padding:10px 18px calc(28px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:18px;box-shadow:0 -10px 30px rgba(15,27,45,.25)}
+@media (prefers-reduced-motion: no-preference){ .sheet{animation:sheetIn .2s ease-out} @keyframes sheetIn{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}} }
+@media(min-width:960px){ .sheetBack{align-items:center} .sheet{border-radius:16px;padding-bottom:24px} }
+.grip{align-self:center;width:40px;height:4px;border-radius:2px;background:var(--grip)}
+.sheetHead{display:flex;align-items:center;justify-content:space-between}
+.sheetHead h2{margin:0;font-size:1.6rem}
+.iconBtn.plain{color:var(--muted)}
+.capOpts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.capOpt{min-height:104px;border:1px solid var(--rule);border-radius:12px;background:var(--surf);color:var(--head);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font:700 .95rem/1.2 var(--f);cursor:pointer}
+.capOpt.main{background:var(--acc);border-color:var(--acc);color:var(--onAcc)}
+.capOpt:disabled{opacity:.45;cursor:not-allowed}
