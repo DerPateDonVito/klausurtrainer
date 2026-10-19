@@ -2,7 +2,18 @@
 /* ============================================================
    Konfiguration
    ============================================================ */
-const VERSION = "1.4.1 (19.10.2026)";
+const VERSION = "1.4.2 (19.10.2026)";
+// Selbstheilung (ab 1.4.2): Passt die geladene Startseite nicht zu dieser Programmdatei (alte index.html aus dem
+// Zwischenspeicher, neue Dateien vom Server), Startseite einmal frisch holen und neu laden. Höchstens einmal je Sitzung.
+(function(){
+  let v = null; try{ v = new URL(document.currentScript.src).searchParams.get("v"); }catch(e){}
+  if(!v) return;
+  if(VERSION.startsWith(v + " ")){ try{ sessionStorage.removeItem("sb.heal"); }catch(e){} return; }
+  let done = false; try{ done = sessionStorage.getItem("sb.heal") === VERSION; sessionStorage.setItem("sb.heal", VERSION); }catch(e){ done = true; }
+  if(done) return;
+  fetch("./", {cache: "reload", credentials: "same-origin"}).catch(() => {}).then(() => location.reload());
+  throw new Error("Startseite veraltet, wird neu geladen");
+})();
 const SCOPE = "https://www.googleapis.com/auth/drive.file";
 const DRIVE = "https://www.googleapis.com/drive/v3";
 const UPLOAD = "https://www.googleapis.com/upload/drive/v3";
