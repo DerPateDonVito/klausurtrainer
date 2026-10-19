@@ -1,5 +1,5 @@
 // Klausurtrainer: Offline-Speicher für den Programmcode. Inhalte und Lernstand liegen nicht hier, sondern in Google Drive und im Browser.
-const CACHE = "klausurtrainer-1.2.0";
+const CACHE = "klausurtrainer-1.3.0";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png"];
 self.addEventListener("install", e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())));
 self.addEventListener("activate", e => e.waitUntil(
