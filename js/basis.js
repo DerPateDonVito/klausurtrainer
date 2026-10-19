@@ -2,16 +2,21 @@
 /* ============================================================
    Konfiguration
    ============================================================ */
-const VERSION = "1.4.2 (19.10.2026)";
-// Selbstheilung (ab 1.4.2): Passt die geladene Startseite nicht zu dieser Programmdatei (alte index.html aus dem
-// Zwischenspeicher, neue Dateien vom Server), Startseite einmal frisch holen und neu laden. Höchstens einmal je Sitzung.
+const VERSION = "1.4.3 (19.10.2026)";
+// Selbstheilung (ab 1.4.2, verbessert 1.4.3): Passt die geladene Startseite nicht zu dieser Programmdatei (alte
+// index.html aus einem Zwischenspeicher, neue Dateien vom Server), die Startseite einmal mit Zeitstempel in der Adresse
+// frisch vom Server holen. Höchstens einmal je Sitzung und Version. Danach den Zeitstempel aus der Adresse entfernen.
 (function(){
   let v = null; try{ v = new URL(document.currentScript.src).searchParams.get("v"); }catch(e){}
-  if(!v) return;
-  if(VERSION.startsWith(v + " ")){ try{ sessionStorage.removeItem("sb.heal"); }catch(e){} return; }
+  const ok = !v || VERSION.startsWith(v + " ");
+  if(ok){
+    try{ sessionStorage.removeItem("sb.heal"); }catch(e){}
+    if(/[?&]sbt=/.test(location.search)) try{ history.replaceState(null, "", location.pathname + location.hash); }catch(e){}
+    return;
+  }
   let done = false; try{ done = sessionStorage.getItem("sb.heal") === VERSION; sessionStorage.setItem("sb.heal", VERSION); }catch(e){ done = true; }
   if(done) return;
-  fetch("./", {cache: "reload", credentials: "same-origin"}).catch(() => {}).then(() => location.reload());
+  location.replace(location.pathname + "?sbt=" + Date.now() + location.hash);
   throw new Error("Startseite veraltet, wird neu geladen");
 })();
 const SCOPE = "https://www.googleapis.com/auth/drive.file";

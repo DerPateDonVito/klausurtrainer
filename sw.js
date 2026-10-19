@@ -1,7 +1,7 @@
 // Studienbuch (bis 1.3 „Klausurtrainer“): Offline-Speicher für den Programmcode.
 // Inhalte und Lernstand liegen nicht hier, sondern in Google Drive und im Browser.
 // Bei jeder neuen Version: CACHE und V erhöhen, gleicher Wert wie ?v= in index.html.
-const V = "1.4.2";
+const V = "1.4.3";
 const CACHE = "studienbuch-" + V;
 const FONTS = "klausurtrainer-fonts";   // Schriften: Name bleibt, damit sie offline nicht neu geladen werden müssen
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png",
@@ -31,11 +31,14 @@ self.addEventListener("fetch", e => {
   // Eigene Dateien: immer zuerst aus dem Netz (Updates kommen sofort an, nie alte und neue Dateien gemischt),
   // ohne Netz aus dem Speicher.
   if (req.mode === "navigate" && !cleaned) { cleaned = true; e.waitUntil(cleanup()); }
-  // Startseite und Dateien immer beim Server nachprüfen (no-cache, meist nur 304), damit nie eine alte Startseite
-  // mit neuen Dateien zusammenkommt (Fehler beim Update auf 1.4.1). Bei einer Weiterleitung den Seitenaufruf unverändert holen.
-  const net = req.mode === "navigate"
-    ? fetch(req.url, {cache: "no-cache", credentials: "same-origin"}).then(r => r.redirected ? fetch(req) : r)
-    : fetch(req, {cache: "no-cache"});
+  // Startseite bei jedem Öffnen mit Zeitstempel in der Adresse holen: So kommt sie garantiert frisch vom Server,
+  // an Browser- und CDN-Zwischenspeicher vorbei, und passt immer zu den Dateien mit ?v= (Fehler beim Update auf 1.4.1).
+  // Dateien mit Prüfung beim Server (no-cache). Bei Weiterleitung oder Fehler den Seitenaufruf unverändert holen.
+  let net;
+  if (req.mode === "navigate") {
+    const u = new URL(req.url); u.searchParams.set("sbt", Date.now());
+    net = fetch(u.href, {cache: "no-store", credentials: "same-origin"}).then(r => (r.ok && !r.redirected) ? r : fetch(req)).catch(() => fetch(req));
+  } else net = fetch(req, {cache: "no-cache"});
   e.respondWith(
     net.then(r => {
       if (r.ok && r.type === "basic") { const copy = r.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
