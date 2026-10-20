@@ -1,7 +1,7 @@
 // Studienbuch (bis 1.3 „Klausurtrainer“): Offline-Speicher für den Programmcode.
 // Inhalte und Lernstand liegen nicht hier, sondern in Google Drive und im Browser.
 // Bei jeder neuen Version: CACHE und V erhöhen, gleicher Wert wie ?v= in index.html.
-const V = "1.6.0";
+const V = "1.6.1";
 const CACHE = "studienbuch-" + V;
 const FONTS = "klausurtrainer-fonts";   // Schriften: Name bleibt, damit sie offline nicht neu geladen werden müssen
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png",

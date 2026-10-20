@@ -397,3 +397,32 @@ button.kswr{cursor:pointer}
 [aria-checked="true"]>.ksw,[aria-checked="true"] .ksw{background:var(--acc)}
 [aria-checked="true"]>.ksw i,[aria-checked="true"] .ksw i{left:21px}
 [data-theme="dark"] [aria-checked="true"] .ksw i{background:#13294B}
+
+/* ===== 1.6.1: Alles passt in die Bildschirmbreite (Wunsch Julian 20.10.2026). Nichts ragt rechts hinaus oder wird abgeschnitten. ===== */
+/* Klausurtermine im Kalender: zweizeilig statt Tabelle */
+.kkl{border-top:1px solid var(--rule);margin-bottom:8px}
+.kkr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;align-items:baseline;padding:9px 4px;border-bottom:1px solid var(--rule);font-size:.92rem}
+.kkn{overflow-wrap:anywhere}
+.kkd{white-space:nowrap;font-weight:600}
+.kkm{grid-column:1/-1;font-size:.8rem;color:var(--muted)}
+.kkm .btn.link{font-size:inherit;padding:0 2px}
+/* Countdown auf Heute: Text darf umbrechen statt mit „…“ gekürzt zu werden */
+.cdb span{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+/* Tabellen: lange Wörter und Pfade umbrechen, am Handy enger */
+table.t td,table.t th{overflow-wrap:break-word}
+table.t .brk{overflow-wrap:anywhere;word-break:break-word}
+@media(max-width:600px){
+  table.t{font-size:.82rem}
+  table.t td,table.t th{padding:7px 5px}
+}
+/* Listen in Lernen (Katalog, Fehler): Spalte darf schmaler werden als ihr längstes Wort */
+.li{grid-template-columns:auto minmax(0,1fr) auto}
+.li>span{overflow-wrap:anywhere;min-width:0}
+/* Lernbände: Tage und Stand dürfen untereinander rutschen */
+.eb-nums{flex-wrap:wrap}
+.eb-days,.eb-firm{min-width:0}
+.eb-title{min-width:0;overflow-wrap:break-word}
+@media(max-width:400px){
+  table.t{font-size:.78rem}
+  table.t td,table.t th{padding:6px 4px}
+}

@@ -64,7 +64,7 @@ function viewHome(){
     html += `<section class="eb mx-${m}" aria-label="${esc(M.name)}">${MOTIF[m]||""}
       <div class="eb-top"><span>Band ${bandOf(m)} · ${m}</span><span>${esc(M.doz)}</span></div>
       <div class="eb-rule"></div>
-      <div class="eb-main"><h2 class="eb-title">${esc(M.name)}</h2>
+      <div class="eb-main"><h2 class="eb-title">${silben(esc(M.name))}</h2>
         <div class="eb-nums"><div class="eb-days"><strong class="mono">${d>=0?d:"–"}</strong><span>${d>=0?`Tage bis ${fmtDate(examOf(m))}`:"Klausur vorbei"}</span></div>
           <div class="eb-firm"><strong class="mono">${firm} %</strong><span>gefestigt</span></div></div></div>
       <div class="eb-bar" role="img" aria-label="Karten je Fach 1 bis 6: ${s.fach.join(", ")}">${s.fach.map((n,i)=>`<i style="flex:${n} 1 0;background:var(--r${i+1})"></i>`).join("")}</div>
@@ -451,7 +451,7 @@ function viewStats(){
       <div class="bars" role="img" aria-label="Bewertungen pro Tag">${days.map(d=>{ const c=cnt[d], h=v=>Math.round(v/maxN*100); return `<div title="${fmtDate(d)}: ${c.r} richtig, ${c.t} teilweise, ${c.f} falsch"><i style="height:${h(c.f)}%;background:var(--sF)"></i><i style="height:${h(c.t)}%;background:var(--sT)"></i><i style="height:${h(c.r)}%;background:var(--sR)"></i></div>`; }).join("")}</div>
       <div class="bl mono">${days.map(d=>`<span>${d.slice(8)}</span>`).join("")}</div>
       <div class="facts"><span><i class="dot" style="--mc:var(--sR)"></i> richtig</span><span><i class="dot" style="--mc:var(--sT)"></i> teilweise</span><span><i class="dot" style="--mc:var(--sF)"></i> falsch</span></div></div>
-    <table class="t"><tr><th>Modul</th><th>Fach 1–6</th><th>Frei&shy;geschaltet</th><th>Neu</th><th>Lücken</th><th>Simulation</th></tr>
+    <table class="t"><tr><th>Modul</th><th>Fach 1–6</th><th>Frei&shy;geschaltet</th><th>Neu</th><th>Lücken</th><th>Simu&shy;lation</th></tr>
     ${modOrder().map(m=>{ const s=moduleStats(m), sim=SIMS.filter(x=>x.modul===m).at(-1);
       return `<tr><td>${m}</td><td class="mono">${s.fach.join(" · ")}</td><td class="mono">${s.unl.length} von ${s.scope.length}</td><td class="mono">${s.fresh.length}</td><td class="mono">${s.gaps.length}</td><td class="mono">${sim?`${Math.round(sim.punkte/sim.max*100)} % (${fmtDate(sim.d).slice(0,6)})`:"–"}</td></tr>`; }).join("")}</table>`;
   if(DIFF){
@@ -487,7 +487,7 @@ function viewData(){
     <div class="card">
       ${PKG?`<table class="t"><tr><th>Stand</th><td>${fmtDT(PKG.erstellt)}, erstellt am ${esc(PKG.geraet||"PC")} aus ${esc(PKG.quelle||"–")}</td></tr>
         <tr><th>Umfang</th><td>${ITEMS.length} Fragen: ${BUILD.cards} Karteikarten, ${BUILD.meta} Einträge der Prüfungsebene, ${BUILD.merk||0} Merkhilfen, ${Object.keys(PKG.bilder||{}).length} Bilder</td></tr>
-        <tr><th>Dateien</th><td class="small">${BUILD.files.map(esc).join("<br>")}</td></tr></table>
+        <tr><th>Dateien</th><td class="small brk">${BUILD.files.map(esc).join("<br>")}</td></tr></table>
         ${BUILD.warnings.length?`<details><summary>${BUILD.warnings.length} Hinweise zu den Dateien</summary><ul class="small">${BUILD.warnings.map(w=>`<li>${esc(w)}</li>`).join("")}</ul></details>`:`<p class="small muted">Keine Auffälligkeiten.</p>`}`
         :`<p>Noch kein Inhaltspaket geladen.</p>`}
       ${DEVICE==="PC"?`<p class="hint" style="margin-top:10px">Nach jeder Nachbereitung im Modulchat: „Inhalte nach Drive“, dann den Ordner Studium bzw. Studium_Cloudkopie wählen. Gelesen werden nur karten.csv, Pruefung/pruefung_Mx.csv, Pruefung/merkhilfen_Mx.csv und die dort genannten Bilder. Das Handy holt sich das neue Paket beim nächsten Abgleich.</p>

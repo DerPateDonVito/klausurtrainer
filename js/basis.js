@@ -2,7 +2,7 @@
 /* ============================================================
    Konfiguration
    ============================================================ */
-const VERSION = "1.6.0 (20.10.2026)";
+const VERSION = "1.6.1 (20.10.2026)";
 // Selbstheilung (ab 1.4.2, verbessert 1.4.3): Passt die geladene Startseite nicht zu dieser Programmdatei (alte
 // index.html aus einem Zwischenspeicher, neue Dateien vom Server), die Startseite einmal mit Zeitstempel in der Adresse
 // frisch vom Server holen. Höchstens einmal je Sitzung und Version. Danach den Zeitstempel aus der Adresse entfernen.
@@ -82,6 +82,8 @@ const DEVICE =/Android|iPhone|iPad/i.test(navigator.userAgent) ? "Handy" : "PC";
    ============================================================ */
 const $ = (s, el=document) => el.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+// 1.6.1: Trennstellen (weiches Trennzeichen) in langen Wörtern der Modulnamen, damit sie auf schmalen Handys umbrechen
+const silben = s => String(s).replace(/Lebensphasen(?=orientiert)/g, "Lebensphasen\u00AD").replace(/Beziehungs(?=gestaltung)/g, "Beziehungs\u00AD").replace(/Sozial(?=politik|system)/g, "Sozial\u00AD");
 let STORAGE_OK = true;
 try{ localStorage.setItem(K+"probe","1"); localStorage.removeItem(K+"probe"); }catch(e){ STORAGE_OK = false; }
 function lsGet(key, fb){ try{ const v = localStorage.getItem(K+key); return v ? JSON.parse(v) : fb; }catch(e){ return fb; } }

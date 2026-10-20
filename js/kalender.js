@@ -150,7 +150,7 @@ function kalWoche(){
     const k = tagKey(d), t = kalTermine(d, plusTage(d, 1)), ganz = t.filter(e => e.g), zeit = t.filter(e => !e.g);
     const bars = zeit.map(e => { const s = kalDatum(e.s) < d ? d : kalDatum(e.s), z = kalDatum(e.e) > plusTage(d, 1) ? plusTage(d, 1) : kalDatum(e.e);
       const l = pos(s), w = Math.max(4, (z >= plusTage(d, 1) ? 100 : pos(z)) - l);
-      return `<button type="button" class="kbar ${kalKlasse(e)}${e.eigen ? " eigen" : ""}" style="left:${l.toFixed(1)}%;width:${w.toFixed(1)}%" data-ke="${esc(e.id)}" aria-pressed="${KAL_SEL === e.id}" title="${esc(kalUhr(e.s) + "–" + kalUhr(e.e) + " " + (e.m ? kalName(e) : e.t))}">${esc(e.m ? (e.m + (kalDoz(e.m) ? " · " + kalDoz(e.m) : "")) : e.t)}</button>`; }).join("");
+      return `<button type="button" class="kbar ${kalKlasse(e)}${e.eigen ? " eigen" : ""}" style="left:${l.toFixed(1)}%;width:${w.toFixed(1)}%" data-ke="${esc(e.id)}" aria-pressed="${KAL_SEL === e.id}" title="${esc(kalUhr(e.s) + "–" + kalUhr(e.e) + " " + (e.m ? kalName(e) : e.t))}">${e.m ? esc(e.m) + (kalDoz(e.m) ? `<span class="kdoz"> · ${esc(kalDoz(e.m))}</span>` : "") : esc(e.t)}</button>`; }).join("");
     const gz = ganz.map(e => `<button type="button" class="kbar kgz ${kalKlasse(e)}${e.eigen ? " eigen" : ""}" data-ke="${esc(e.id)}" aria-pressed="${KAL_SEL === e.id}">${esc(e.m ? e.m : e.t)}</button>`).join("");
     return `<div class="kwz${k === heute ? " ist-heute" : ""}"><span class="kwt">${TAGK[d.getDay()]} ${d.getDate()}.${zeit.length && ganz.length ? `<em>+ ${ganz.length} ganztägig</em>` : ""}</span><div class="kwb${zeit.length || ganz.length ? "" : " leer"}">${bars}${gz && !zeit.length ? gz : ""}</div></div>`;
   }).join("");
@@ -190,6 +190,12 @@ function kalVerdrahten(root = main){
 }
 
 /* ---------- Ansicht Kalender ---------- */
+// 1.6.1: Passt „M4 · Finkbeiner“ nicht in den Balken der Woche (schmales Handy, kurzer Termin), steht nur „M4“ da.
+// Der volle Name steht im Tooltip und nach Antippen in der Zeile darunter.
+function kalBalkenPassen(){
+  main.querySelectorAll(".kbar .kdoz").forEach(s => { s.hidden = false; const b = s.parentElement; if(b.scrollWidth > b.clientWidth + 1) s.hidden = true; });
+}
+window.addEventListener("resize", () => { if(typeof VIEW !== "undefined" && VIEW === "kalender") kalBalkenPassen(); });
 function viewKalender(){
   const ans = UI.kalAnsicht === "woche" ? "woche" : "liste";
   const stand = KAL.at ? ` · Stand ${new Date(KAL.at).toLocaleTimeString("de-DE", {hour: "2-digit", minute: "2-digit"})}` : "";
@@ -202,11 +208,11 @@ function viewKalender(){
       <section class="kliste" aria-label="Nächste 14 Tage"><span class="kicker kpc">Nächste 14 Tage</span>${kalListe(14)}</section>
       <section class="kwoche" aria-label="Woche">${kalWoche()}</section></div>` : ""}
     <h2>Klausurtermine</h2>
-    <table class="t">${modOrder().map(m => { const d = daysTo(examOf(m)), k = kalKlausur(m), st = kalKlausurStatus(m);
-      return `<tr><td style="white-space:nowrap"><span class="dot" style="--mc:${MODULES[m].color}"></span> ${m} ${esc(MODULES[m].short)}</td><td class="mono" style="white-space:nowrap">${fmtDate(examOf(m))}</td><td class="mono" style="white-space:nowrap">${d >= 0 ? `${d} ${d === 1 ? "Tag" : "Tage"}` : "vorbei"}</td>
-        <td>${st === "bestätigt" ? "bestätigt (FOM)" : st === "abweichend" ? `FOM nennt ${fmtDate(k)} <button class="btn link" type="button" data-kx="${m}" data-kd="${k}">übernehmen</button>` : "vorläufig"}</td></tr>`; }).join("")}
-      <tr><td style="white-space:nowrap"><span class="dot" style="--mc:var(--m4)"></span> M4 ${esc(KURSE.M4.short)}</td><td colspan="3" class="muted">Essay, Abgabe laut Studienbuch</td></tr></table>`;
-  wireBanner(); kalVerdrahten();
+    <div class="kkl">${modOrder().map(m => { const d = daysTo(examOf(m)), k = kalKlausur(m), st = kalKlausurStatus(m);
+      return `<div class="kkr"><span class="kkn"><span class="dot" style="--mc:${MODULES[m].color}"></span> ${m} ${esc(MODULES[m].short)}</span><span class="kkd mono">${fmtDate(examOf(m))}</span>
+        <span class="kkm">${d >= 0 ? `${d} ${d === 1 ? "Tag" : "Tage"}` : "vorbei"} · ${st === "bestätigt" ? "bestätigt (FOM)" : st === "abweichend" ? `FOM nennt ${fmtDate(k)} <button class="btn link" type="button" data-kx="${m}" data-kd="${k}">übernehmen</button>` : "vorläufig"}</span></div>`; }).join("")}
+      <div class="kkr"><span class="kkn"><span class="dot" style="--mc:var(--m4)"></span> M4 ${esc(KURSE.M4.short)}</span><span class="kkd">Essay</span><span class="kkm">Abgabe laut Studienbuch</span></div></div>`;
+  wireBanner(); kalVerdrahten(); kalBalkenPassen();
   main.querySelectorAll("[data-ka]").forEach(b => b.onclick = () => { UI.kalAnsicht = b.dataset.ka; saveUI(); viewKalender(); });
   main.querySelectorAll("[data-kw]").forEach(b => b.onclick = () => { KAL_WOCHE += Number(b.dataset.kw); KAL_SEL = null; viewKalender(); });
   main.querySelectorAll("[data-ke]").forEach(b => b.onclick = () => { KAL_SEL = KAL_SEL === b.dataset.ke ? null : b.dataset.ke; viewKalender(); });

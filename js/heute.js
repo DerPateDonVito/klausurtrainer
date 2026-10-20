@@ -59,7 +59,7 @@ function tileCountdown(){
     <div class="cd">${modOrder().map(m => { const d = daysTo(examOf(m));
       const ok = kalKlausurStatus(m) === "bestätigt";
       return `<div class="cdb mx-${m}" title="${ok ? "Bestätigt durch den FOM-Kalender." : "Vorläufiger Termin, bis der FOM-Kalender ihn bestätigt. Ändern unter Einstellungen."}">
-        <span>${m} · ${fmtDate(examOf(m)).slice(0,6)}</span><strong class="mono">${d>=0?d:"–"}</strong><span>${d>=0?(d===1?"Tag":"Tage"):"vorbei"} · ${ok ? "bestätigt" : "vorläufig"}</span></div>`; }).join("")}</div>
+        <span>${m} · ${fmtDate(examOf(m)).slice(0,6)}</span><strong class="mono">${d>=0?d:"–"}</strong><span>${d>=0?(d===1?"Tag":"Tage"):"vorbei"}</span><span>${ok ? "bestätigt" : "vorläufig"}</span></div>`; }).join("")}</div>
   </section>`;
 }
 
