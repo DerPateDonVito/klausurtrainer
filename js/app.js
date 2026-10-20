@@ -5,9 +5,9 @@
    ============================================================ */
 // Ansicht → Bereich. Die Ansichten von 1.3 (home bis data) bleiben unverändert; „home“ ist die Übersicht in „Lernen“.
 const AREA = {heute:"heute", kalender:"kalender", home:"lernen", train:"lernen", errors:"lernen", sim:"lernen",
-  transfer:"lernen", catalog:"lernen", stats:"statistik", data:"einstellungen"};
+  transfer:"lernen", catalog:"lernen", stats:"statistik", data:"einstellungen", erf:"erfassen", notiz:"erfassen"};
 const VIEWS = {heute:viewHeute, kalender:viewKalender, home:viewHome, train:viewTrain, errors:viewErrors, sim:viewSim,
-  transfer:viewTransfer, catalog:viewCatalog, stats:viewStatistik, data:viewEinstellungen};
+  transfer:viewTransfer, catalog:viewCatalog, stats:viewStatistik, data:viewEinstellungen, erf:viewErf, notiz:viewNotiz};   // erf, notiz: ab 1.5.0 (Fokus, ohne Leiste)
 
 function go(v, opts){
   zeitTakt();
@@ -71,5 +71,6 @@ if(location.protocol.startsWith("http") && "serviceWorker" in navigator){ naviga
   if(DEVICE==="PC" && window.showDirectoryPicker){ const h = await idbGet("dir"); if(h){ try{ DIR_STATE = (await h.queryPermission({mode:"read"}))==="granted" ? "ok" : "ask"; }catch(e){ DIR_STATE="ask"; } } }
   render();
   if(hasToken()) syncNow({first:true}); else renderSync();
+  erfStart();   // ab 1.5.0: Warteschlange, Entwurf, Übernahme
 })();
 window.KT = {buildItems, rate, mergeIn, get items(){return ITEMS;}, get prog(){return PROG;}, get local(){return LOCAL;}, syncNow, applyPackage};

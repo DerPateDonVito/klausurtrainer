@@ -1,7 +1,7 @@
 "use strict";
 /* ============================================================
-   Studienbuch: Startseite „Heute“, Kalender (Platzhalter), Erfassen (Platzhalter), Einstellungen
-   Lastenheft H1, H2, H9. Die Lernlogik wird hier nur gelesen, nie verändert.
+   Studienbuch: Startseite „Heute“, Kalender (Platzhalter), Erfassen-Fenster, Einstellungen
+   Lastenheft H1, H2, H9. Erfassen selbst (H3, H4, H7) steht ab 1.5.0 in erfassen.js. Die Lernlogik wird hier nur gelesen.
    ============================================================ */
 
 // Kurse ohne Klausur: nur für Kalender, Erfassen und Modulseiten, nie im Bereich Lernen (Lastenheft H0).
@@ -67,6 +67,7 @@ function heuteHinweise(){
   if(DIR_STATE==="ask") h += `<div class="note">Studienordner auf neue Inhalte prüfen: <a href="#" id="dirCheck">Jetzt prüfen</a> (Brave fragt nach der Freigabe, „Bei jedem Besuch erlauben“ wählen, falls angeboten)</div>`;
   else if(DEVICE==="PC" && hasToken() && window.showDirectoryPicker && DIR_STATE==="none" && PKG) h += `<div class="note">Damit die App neue Inhalte selbst findet: einmal unter Einstellungen „Inhalte nach Drive“ ausführen und den Studienordner wählen.</div>`;
   if(DIFF && !DIFF.gesehen) h += `<div class="note">Neue Inhalte vom ${fmtDT(DIFF.at)}: ${DIFF.neu.length} neue, ${DIFF.geaendert.length} geänderte Fragen. <a href="#" data-go="stats">Anzeigen</a></div>`;
+  h += erfHinweise();   // ab 1.5.0: Warteschlange, Entwurf, Übernahme am PC
   return h;
 }
 
@@ -84,7 +85,7 @@ function viewHeute(){
       : `<div class="card"><p>Alle Kacheln sind ausgeblendet.</p><a href="#" data-go="data">Unter Einstellungen einblenden</a></div>`}
     <p class="hint hfoot">Inhalte vom ${PKG?fmtDT(PKG.erstellt):"–"}${pkgAge>7?` (${pkgAge} Tage alt)`:""} · ${ITEMS.filter(trainable).length} Fragen</p>
   </div>`;
-  wireBanner();
+  wireBanner(); erfHinweiseVerdrahten();
   const dc = $("#dirCheck"); if(dc) dc.onclick = e => { e.preventDefault(); autoContentCheck(true); };
   main.querySelectorAll("[data-hm]").forEach(b => b.onclick = () => startLernen(b.dataset.hm));
   const all = $("#hAll"); if(all) all.onclick = () => startLernen("ALL");
@@ -102,11 +103,11 @@ function viewKalender(){
   wireBanner();
 }
 
-/* ---------- Erfassen (Lastenheft H3, H4): Fenster von unten, Funktionen folgen mit Paket 3 ---------- */
+/* ---------- Erfassen (Lastenheft H3, H4): Fenster von unten, Inhalt und Funktionen in erfassen.js ---------- */
 let SHEET_FOCUS = null;
 function openSheet(){
   const s = $("#sheet"); if(!s.hidden) return;
-  SHEET_FOCUS = document.activeElement; s.hidden = false; document.body.classList.add("sheet-open");
+  SHEET_FOCUS = document.activeElement; erfSheetMalen(true); s.hidden = false; document.body.classList.add("sheet-open");
   $("#sheetClose").focus();
 }
 function closeSheet(){
@@ -124,6 +125,7 @@ function viewEinstellungen(opts){
     <div class="chips">${TILES.map(t => `<button class="chip" type="button" data-tile="${t.id}" aria-pressed="${tileOn(t)}" ${t.ready?"":"disabled"}>${esc(t.label)}${t.ready?"":` (${esc(t.folgt)})`}</button>`).join("")}</div>`;
   const ver = main.lastElementChild;   // Versionszeile bleibt ganz unten
   main.insertBefore(sec, ver);
+  const erf = document.createElement("section"); main.insertBefore(erf, sec); erfEinstellungen(erf);   // ab 1.5.0
   sec.querySelectorAll("[data-tile]").forEach(b => b.onclick = () => {
     const id = b.dataset.tile; UI.tiles[id] = !tileOn(TILES.find(t=>t.id===id)); saveUI();
     b.setAttribute("aria-pressed", UI.tiles[id]);

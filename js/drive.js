@@ -42,6 +42,7 @@ async function onToken(r){
   try{ sessionStorage.setItem(K+"tok", JSON.stringify({token:G.token, exp:G.exp})); }catch(e){}
   if(!LOCAL.email){ try{ const a = await (await api(`${DRIVE}/about?fields=user(emailAddress)`)).json(); LOCAL.email = a.user && a.user.emailAddress || ""; persistLocal(); }catch(e){} }
   await syncNow({first:true});
+  if(typeof erfAnstossen === "function") erfAnstossen();   // ab 1.5.0: wartende Erfassungen hochladen
 }
 function logout(){
   if(G.token && gisReady()){ try{ google.accounts.oauth2.revoke(G.token, ()=>{}); }catch(e){} }
@@ -284,7 +285,7 @@ async function autoContentCheck(interactive){
 async function pushContent(){
   if(!hasToken()){ toast("Bitte zuerst mit Google anmelden."); return login(); }
   if(window.showDirectoryPicker){
-    try{ const h = await window.showDirectoryPicker({id:"studium", mode:"read"}); await idbSet("dir", h); DIR_STATE = "ok"; const src = await collectFromHandle(h); src.fp = contentFp(src.files); return buildAndUpload(src); }
+    try{ const h = await window.showDirectoryPicker({id:"studium", mode:"readwrite"}); await idbSet("dir", h); if(typeof uebHandle === "function") uebHandle(); DIR_STATE = "ok"; const src = await collectFromHandle(h); src.fp = contentFp(src.files); return buildAndUpload(src); }
     catch(e){ if(e && e.name==="AbortError") return; }
   }
   $("#dirInput").click();

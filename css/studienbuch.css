@@ -157,6 +157,88 @@ body.focus main,body:has(#tm) main{padding-bottom:96px}
 .capOpt{min-height:104px;border:1px solid var(--rule);border-radius:12px;background:var(--surf);color:var(--head);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font:700 .95rem/1.2 var(--f);cursor:pointer}
 .capOpt.main{background:var(--acc);border-color:var(--acc);color:var(--onAcc)}
 .capOpt:disabled{opacity:.45;cursor:not-allowed}
+.sheet{max-height:92vh;max-height:92dvh;overflow-y:auto}
+
+/* ---------- Erfassen ab 1.5.0 (Lastenheft H3, H4, H7): Modulwahl, Warteschlange, Prüfen, Schnellnotiz ---------- */
+.capField{margin:0;padding:0;border:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+.capField legend{padding:0;margin-bottom:8px}
+.capMods{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.capMod{min-height:44px;font:600 .95rem/1 var(--f);border-radius:8px;border:1px solid var(--rule);background:var(--surf);color:var(--mpage);cursor:pointer}
+.capMod[aria-pressed="true"]{border:2px solid var(--mink);background:var(--mbg);color:var(--mink);font-weight:700}
+.capInfo{min-height:1.2em}
+.capRow{display:flex;align-items:center;gap:10px;min-height:44px;padding:8px 12px;border-radius:10px;background:var(--amberSoft);color:var(--text);font-size:.9rem}
+.capRow svg{flex:0 0 auto;color:var(--goldText)}
+.capRow span{flex:1 1 auto;min-width:0}
+.capRow a{font-weight:700;text-decoration:none;white-space:nowrap;min-height:36px;display:inline-flex;align-items:center}
+.capList{margin-top:-8px}
+.qlist{list-style:none;margin:0 0 8px;padding:0;font-size:.82rem}
+.qlist li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 10px;padding:6px 2px;border-bottom:1px solid var(--line);word-break:break-all}
+.warnText{color:var(--red)}
+
+.erf,.notiz{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.erfhead{background:var(--mbg);color:var(--mink);border-radius:12px;padding:4px 14px 4px 4px;display:flex;align-items:center;gap:4px}
+.erfhead strong{flex:1 1 auto;font:600 1.25rem/1.2 var(--serif)}
+.erfhead span{font-size:.82rem;font-weight:600;color:var(--msub);white-space:nowrap}
+.erfsec{display:flex;flex-direction:column;gap:8px}
+.erfgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media(min-width:720px){ .erfgrid{grid-template-columns:repeat(4,minmax(0,1fr))} }
+.erfgrid figure{margin:0;position:relative;aspect-ratio:3/4;background:var(--surf);border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+.erfgrid img{display:block;width:100%;height:100%;object-fit:cover}
+.erfgrid figcaption{position:absolute;left:6px;bottom:6px;font:700 .75rem/1.5 var(--f);background:#13294B;color:#FFFFFF;border-radius:4px;padding:0 6px}
+.erfx,.erfl{position:absolute;top:4px;width:36px;height:36px;border-radius:50%;border:0;background:rgba(15,27,45,.72);color:#FFFFFF;font:700 1rem/1 var(--f);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.erfx{right:4px} .erfl{left:4px;font-size:1.3rem}
+.erfadd{min-height:48px;font:700 .95rem/1 var(--f);border:1px dashed var(--muted);border-radius:8px;background:transparent;color:var(--head);display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.erfdat{background:var(--surf);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+.erfdat>div{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:4px 4px 4px 14px;border-bottom:1px solid var(--line);font-size:.92rem}
+.erfdat>div>span{min-width:0;overflow-wrap:anywhere}
+.erfdat .btn{flex:0 0 auto;white-space:nowrap}
+.erfdat>div:last-child{border-bottom:0}
+.erfart{margin:0;padding:0;border:0;min-width:0}
+.erfart legend{padding:0;margin-bottom:8px}
+.erfart .chip{min-height:44px;padding:0 14px;font-size:.9rem;font-weight:600}
+.erfname{background:var(--surf);border:1px solid var(--rule);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.erfname .kicker,.nfoot .kicker{color:var(--muted)}
+.erfname code,.nliste code{font:.9rem/1.4 ui-monospace,"Cascadia Mono",Consolas,monospace;color:var(--head);word-break:break-all}
+.erffoot{position:sticky;bottom:0;z-index:5;background:var(--bg);padding:12px 0 calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--rule)}
+.erffoot .btn{width:100%;min-height:56px;font-size:1rem}
+
+.notiz{gap:14px}
+.nhead{position:relative;overflow:hidden;background:var(--mbg);color:var(--mink);border-radius:12px;padding:4px 16px 14px 4px;display:flex;flex-direction:column;gap:2px}
+.nhead .motif{position:absolute;right:-30px;top:-20px;width:180px;height:auto;color:var(--mmot);pointer-events:none}
+.nhead>*:not(.motif){position:relative}
+.nrow{display:flex;align-items:center;gap:4px}
+.nsub{font-size:.82rem;font-weight:600;color:var(--msub)}
+.nhead strong{padding-left:16px;font:500 1.4rem/1.2 var(--serif)}
+.nliste{display:flex;flex-direction:column;gap:10px}
+.nliste article{background:var(--surf);border:1px solid var(--rule);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.nliste p{margin:0;font-size:.95rem;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere}
+.nliste .hint{margin:0}
+.nmeta{display:flex;gap:8px;align-items:center;font-size:.75rem;color:var(--muted)}
+.nmeta b{color:var(--head)}
+.nst{margin-left:auto}
+.nst[data-s="drive"]{color:var(--good)}
+.nkr{font-weight:700;color:#6B3E00;background:#F6E3B4;border-radius:4px;padding:1px 6px}
+.nfoot{position:sticky;bottom:0;z-index:5;background:var(--surf);border:1px solid var(--rule);border-radius:12px;padding:10px 12px calc(14px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px}
+.nfoot textarea{min-height:0;font-size:16px;line-height:1.4;resize:none;background:var(--bg)}
+.nbtn{display:flex;gap:8px}
+.nbtn .btn{flex:1 1 auto;min-height:52px}
+.nkrbtn{min-height:52px;min-width:88px;font:700 .95rem/1 var(--f);border-radius:8px;border:2px solid var(--gold);background:var(--surf);color:var(--goldText);cursor:pointer}
+.nkrbtn[aria-pressed="true"]{background:#F6E3B4;color:#6B3E00;box-shadow:inset 0 0 0 1px var(--gold)}
+.nkrbtn[aria-pressed="true"]::before{content:"✓ "}
+/* Fußleiste (Hochladen, Speichern) immer unten am Bildschirm, Meldungen oben statt über dem Knopf */
+body[data-area="erfassen"] main{padding-bottom:0}
+.erf,.notiz{min-height:calc(100vh - 20px);min-height:calc(100dvh - 20px)}
+.erffoot,.nfoot{margin-top:auto}
+.nfoot{margin-bottom:12px}
+body[data-area="erfassen"] .toast{bottom:auto;top:16px}
+@media(min-width:720px){ .erf,.notiz{min-height:calc(100vh - 28px);min-height:calc(100dvh - 28px)} }
+@media(min-width:960px){ body[data-area="erfassen"] main{padding-bottom:0} .erf,.notiz{min-height:calc(100vh - 32px);min-height:calc(100dvh - 32px)} }
+@media(max-width:719px){
+  .nfoot{margin-bottom:0}
+  .erfhead,.nhead{position:sticky;top:0;z-index:6;border-radius:0;margin:-20px -16px 0}
+  .nhead{position:relative}
+  .nfoot{border-radius:0;border-width:1px 0 0;margin:0 -16px}
+}
 
 /* ---------- Statistik „Lernjournal“ (Paket 2, Lastenheft H6, Variante C) ---------- */
 .stat{display:flex;flex-direction:column;gap:26px;max-width:1100px}

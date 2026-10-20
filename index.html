@@ -19,9 +19,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Figtree:wght@400;500;600;700&display=swap">
 <!-- Versionszusatz ?v= bei jeder neuen Version erhöhen (gleicher Wert in sw.js), damit nie alte und neue Dateien gemischt laufen -->
-<link rel="stylesheet" href="css/basis.css?v=1.4.3">
-<link rel="stylesheet" href="css/lernen.css?v=1.4.3">
-<link rel="stylesheet" href="css/studienbuch.css?v=1.4.3">
+<link rel="stylesheet" href="css/basis.css?v=1.5.0">
+<link rel="stylesheet" href="css/lernen.css?v=1.5.0">
+<link rel="stylesheet" href="css/studienbuch.css?v=1.5.0">
 </head>
 <body>
 <div class="shell">
@@ -79,30 +79,40 @@
   <button type="button" data-v="stats" data-area="statistik"><span class="tbar" aria-hidden="true"></span><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16M7 16v-5M12 16V6M17 16v-8"/></svg>Statistik</button>
 </nav>
 
-<!-- Fenster von unten: Erfassen (Lastenheft H3, H4; Funktionen folgen mit Paket 3) -->
+<!-- Fenster von unten: Erfassen (Lastenheft H3, H4, ab 1.5.0) -->
 <div class="sheetBack" id="sheet" hidden>
   <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
     <span class="grip" aria-hidden="true"></span>
     <div class="sheetHead"><h2 id="sheetTitle">Erfassen</h2>
       <button class="iconBtn plain" type="button" id="sheetClose" aria-label="Schließen"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <!-- „Vorlesung läuft“ folgt mit dem Kalender (Paket 4) -->
+    <div class="capHint" id="capHint" hidden></div>
+    <fieldset class="capField"><legend class="kicker">Modul</legend>
+      <div class="capMods" id="capMods"></div>
+      <span class="small muted capInfo" id="capInfo"></span></fieldset>
     <div class="capOpts">
-      <button type="button" class="capOpt main" disabled><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Foto</span></button>
-      <button type="button" class="capOpt" disabled><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/></svg><span>Datei</span></button>
-      <button type="button" class="capOpt" disabled><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19l1-4L16 5l3 3L9 18z"/><path d="M14 7l3 3"/></svg><span>Notiz</span></button>
+      <button type="button" class="capOpt main" id="capFoto"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Foto</span></button>
+      <button type="button" class="capOpt" id="capDatei"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/></svg><span>Datei</span></button>
+      <button type="button" class="capOpt" id="capNotiz"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19l1-4L16 5l3 3L9 18z"/><path d="M14 7l3 3"/></svg><span>Notiz</span></button>
     </div>
-    <p class="note" style="margin:0">Foto, Datei und Schnellnotiz folgen mit dem nächsten Ausbauschritt. Bis dahin Whiteboards wie bisher mit der Handykamera fotografieren, mehrseitige Papiere mit dem Scanner der Google-Drive-App.</p>
+    <div class="capRow" id="capEntwurf" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span></span><a href="#" id="capEntwurfGo">Fortsetzen</a></div>
+    <div class="capRow" id="capQueue" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M8 9l4-4 4 4"/><path d="M5 19h14"/></svg><span></span><a href="#" id="capQueueGo">Anzeigen</a></div>
+    <div class="capList" id="capList" hidden></div>
   </section>
 </div>
 
+<input type="file" id="camIn" accept="image/*" capture="environment" multiple hidden>
+<input type="file" id="fileIn" multiple hidden>
 <input type="file" id="dirInput" webkitdirectory directory multiple hidden>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="js/basis.js?v=1.4.3"></script>
-<script src="js/lernlogik.js?v=1.4.3"></script>
-<script src="js/drive.js?v=1.4.3"></script>
-<script src="js/lernen.js?v=1.4.3"></script>
-<script src="js/heute.js?v=1.4.3"></script>
-<script src="js/zeit.js?v=1.4.3"></script>
-<script src="js/statistik.js?v=1.4.3"></script>
-<script src="js/app.js?v=1.4.3"></script>
+<script src="js/basis.js?v=1.5.0"></script>
+<script src="js/lernlogik.js?v=1.5.0"></script>
+<script src="js/drive.js?v=1.5.0"></script>
+<script src="js/lernen.js?v=1.5.0"></script>
+<script src="js/heute.js?v=1.5.0"></script>
+<script src="js/zeit.js?v=1.5.0"></script>
+<script src="js/statistik.js?v=1.5.0"></script>
+<script src="js/erfassen.js?v=1.5.0"></script>
+<script src="js/app.js?v=1.5.0"></script>
 </body>
 </html>
