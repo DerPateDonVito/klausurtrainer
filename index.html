@@ -19,9 +19,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Figtree:wght@400;500;600;700&display=swap">
 <!-- Versionszusatz ?v= bei jeder neuen Version erhöhen (gleicher Wert in sw.js), damit nie alte und neue Dateien gemischt laufen -->
-<link rel="stylesheet" href="css/basis.css?v=1.5.0">
-<link rel="stylesheet" href="css/lernen.css?v=1.5.0">
-<link rel="stylesheet" href="css/studienbuch.css?v=1.5.0">
+<link rel="stylesheet" href="css/basis.css?v=1.6.0">
+<link rel="stylesheet" href="css/lernen.css?v=1.6.0">
+<link rel="stylesheet" href="css/studienbuch.css?v=1.6.0">
 </head>
 <body>
 <div class="shell">
@@ -85,7 +85,7 @@
     <span class="grip" aria-hidden="true"></span>
     <div class="sheetHead"><h2 id="sheetTitle">Erfassen</h2>
       <button class="iconBtn plain" type="button" id="sheetClose" aria-label="Schließen"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <!-- „Vorlesung läuft“ folgt mit dem Kalender (Paket 4) -->
+    <!-- „Vorlesung läuft“ (ab 1.6.0 aus dem Kalender) -->
     <div class="capHint" id="capHint" hidden></div>
     <fieldset class="capField"><legend class="kicker">Modul</legend>
       <div class="capMods" id="capMods"></div>
@@ -105,14 +105,15 @@
 <input type="file" id="fileIn" multiple hidden>
 <input type="file" id="dirInput" webkitdirectory directory multiple hidden>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="js/basis.js?v=1.5.0"></script>
-<script src="js/lernlogik.js?v=1.5.0"></script>
-<script src="js/drive.js?v=1.5.0"></script>
-<script src="js/lernen.js?v=1.5.0"></script>
-<script src="js/heute.js?v=1.5.0"></script>
-<script src="js/zeit.js?v=1.5.0"></script>
-<script src="js/statistik.js?v=1.5.0"></script>
-<script src="js/erfassen.js?v=1.5.0"></script>
-<script src="js/app.js?v=1.5.0"></script>
+<script src="js/basis.js?v=1.6.0"></script>
+<script src="js/lernlogik.js?v=1.6.0"></script>
+<script src="js/drive.js?v=1.6.0"></script>
+<script src="js/lernen.js?v=1.6.0"></script>
+<script src="js/heute.js?v=1.6.0"></script>
+<script src="js/zeit.js?v=1.6.0"></script>
+<script src="js/statistik.js?v=1.6.0"></script>
+<script src="js/kalender.js?v=1.6.0"></script>
+<script src="js/erfassen.js?v=1.6.0"></script>
+<script src="js/app.js?v=1.6.0"></script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 /* ============================================================
    Konfiguration
    ============================================================ */
-const VERSION = "1.5.0 (20.10.2026)";
+const VERSION = "1.6.0 (20.10.2026)";
 // Selbstheilung (ab 1.4.2, verbessert 1.4.3): Passt die geladene Startseite nicht zu dieser Programmdatei (alte
 // index.html aus einem Zwischenspeicher, neue Dateien vom Server), die Startseite einmal mit Zeitstempel in der Adresse
 // frisch vom Server holen. Höchstens einmal je Sitzung und Version. Danach den Zeitstempel aus der Adresse entfernen.

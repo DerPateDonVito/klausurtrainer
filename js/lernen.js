@@ -473,7 +473,7 @@ function viewData(){
       ${hasToken()?`<p>Angemeldet${LOCAL.email?` als <b>${esc(LOCAL.email)}</b>`:""}. Letzter Abgleich: ${LOCAL.lastSync?fmtDT(LOCAL.lastSync):"–"}.</p>
         <div class="row"><button class="btn" id="syncBtn">Jetzt abgleichen</button><button class="btn ghost" id="logoutBtn">Abmelden</button></div>`
       : LOCAL.cid ? `<p>Nicht angemeldet.${pending()?" Es gibt Änderungen, die noch nicht in Drive sind.":""}</p><button class="btn" id="loginBtn">Mit Google anmelden</button>` : `<p>Noch nicht eingerichtet.</p>`}
-      <p class="hint" style="margin-top:10px">Die App sieht in deinem Drive nur ihren eigenen Ordner ${FOLDER_NAME} (Lernstand, Inhaltspaket, Sicherungen, Eingang für Erfassungen). Auf alle anderen Dateien hat sie keinen Zugriff.</p>
+      <p class="hint" style="margin-top:10px">Die App sieht in deinem Drive nur, was sie selbst angelegt hat: den Ordner ${FOLDER_NAME} (Lernstand, Inhaltspaket, Sicherungen) und den Ordner 00_Eingang für Erfassungen. Auf alle anderen Dateien hat sie keinen Zugriff. Google Kalender liest sie nur, ändern kann sie dort nichts.</p>
       <details ${LOCAL.cid?"":"open"}><summary>Client-ID ${LOCAL.cid?"ändern":"eintragen"}</summary>
         <label class="field"><span>Client-ID aus der Google Cloud Console (endet auf .apps.googleusercontent.com)</span><input type="text" id="cid" value="${esc(LOCAL.cid)}" autocomplete="off" spellcheck="false"></label>
         <button class="btn small" id="cidSave">Speichern</button></details>
@@ -490,7 +490,7 @@ function viewData(){
         <tr><th>Dateien</th><td class="small">${BUILD.files.map(esc).join("<br>")}</td></tr></table>
         ${BUILD.warnings.length?`<details><summary>${BUILD.warnings.length} Hinweise zu den Dateien</summary><ul class="small">${BUILD.warnings.map(w=>`<li>${esc(w)}</li>`).join("")}</ul></details>`:`<p class="small muted">Keine Auffälligkeiten.</p>`}`
         :`<p>Noch kein Inhaltspaket geladen.</p>`}
-      ${DEVICE==="PC"?`<p class="hint" style="margin-top:10px">Nach jeder Nachbereitung im Modulchat: „Inhalte nach Drive“, dann den Ordner Studium bzw. Studium_Cloudkopie wählen. Gelesen werden nur karten.csv, Pruefung/pruefung_Mx.csv, Pruefung/merkhilfen_Mx.csv und die dort genannten Bilder. Das Handy holt sich das neue Paket beim nächsten Abgleich. Brave fragt bei der Ordnerwahl auch nach dem Recht zum Speichern: erlauben, damit Erfassungen vom Handy selbst nach 00_Eingang gelangen.</p>
+      ${DEVICE==="PC"?`<p class="hint" style="margin-top:10px">Nach jeder Nachbereitung im Modulchat: „Inhalte nach Drive“, dann den Ordner Studium bzw. Studium_Cloudkopie wählen. Gelesen werden nur karten.csv, Pruefung/pruefung_Mx.csv, Pruefung/merkhilfen_Mx.csv und die dort genannten Bilder. Das Handy holt sich das neue Paket beim nächsten Abgleich.</p>
         <button class="btn" id="pushBtn">Inhalte nach Drive</button>`:`<p class="hint" style="margin-top:10px">Neue Inhalte erstellst du am PC. Das Handy lädt sie beim Abgleich automatisch.</p>`}
     </div>
     <h2>Sicherungen in Drive</h2>

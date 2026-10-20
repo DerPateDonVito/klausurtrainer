@@ -25,11 +25,12 @@ async function login(){
     setSync("busy", "Anmeldung wird geladen …");
     try{ await waitFor(gisReady, 8000); }catch(e){ setSync("err", "Google-Anmeldung lädt nicht"); toast("Die Google-Anmeldung lädt nicht. Internet prüfen, in Brave die Shields für diese Seite ausschalten."); return; }
   }
-  if(!G.client || G.cid !== LOCAL.cid){
-    const cfg = {client_id:LOCAL.cid, scope:SCOPE, callback:onToken,
+  const scope = SCOPE + " " + CAL_SCOPES;   // ab 1.6.0: zusätzlich Kalender nur lesen (Lastenheft H8)
+  if(!G.client || G.cid !== LOCAL.cid || G.scope !== scope){
+    const cfg = {client_id:LOCAL.cid, scope, callback:onToken,
       error_callback: e => { setSync("err", "Anmeldung nicht abgeschlossen"); if(e && e.type==="popup_failed_to_open") toast("Das Anmeldefenster wurde blockiert. Pop-ups für diese Seite erlauben."); }};
     if(LOCAL.email) cfg.login_hint = LOCAL.email;
-    G.client = google.accounts.oauth2.initTokenClient(cfg); G.cid = LOCAL.cid;
+    G.client = google.accounts.oauth2.initTokenClient(cfg); G.cid = LOCAL.cid; G.scope = scope;
   }
   G.client.requestAccessToken({prompt:""});
 }
@@ -39,10 +40,13 @@ async function onToken(r){
     setSync("err", "Drive-Zugriff nicht erlaubt"); toast("Bitte bei der Anmeldung den Haken für Google Drive setzen."); return;
   }
   G.token = r.access_token; G.exp = Date.now() + ((Number(r.expires_in)||3600) - 120) * 1000;
+  const kalOk = !google.accounts.oauth2.hasGrantedAllScopes || google.accounts.oauth2.hasGrantedAllScopes(r, ...CAL_SCOPES.split(" "));
+  KAL.zustand = kalOk ? "aus" : "recht"; kalSpeichern();
   try{ sessionStorage.setItem(K+"tok", JSON.stringify({token:G.token, exp:G.exp})); }catch(e){}
   if(!LOCAL.email){ try{ const a = await (await api(`${DRIVE}/about?fields=user(emailAddress)`)).json(); LOCAL.email = a.user && a.user.emailAddress || ""; persistLocal(); }catch(e){} }
   await syncNow({first:true});
   if(typeof erfAnstossen === "function") erfAnstossen();   // ab 1.5.0: wartende Erfassungen hochladen
+  if(kalOk) kalLaden(true); else kalAnzeigen();   // ab 1.6.0
 }
 function logout(){
   if(G.token && gisReady()){ try{ google.accounts.oauth2.revoke(G.token, ()=>{}); }catch(e){} }
@@ -285,7 +289,7 @@ async function autoContentCheck(interactive){
 async function pushContent(){
   if(!hasToken()){ toast("Bitte zuerst mit Google anmelden."); return login(); }
   if(window.showDirectoryPicker){
-    try{ const h = await window.showDirectoryPicker({id:"studium", mode:"readwrite"}); await idbSet("dir", h); if(typeof uebHandle === "function") uebHandle(); DIR_STATE = "ok"; const src = await collectFromHandle(h); src.fp = contentFp(src.files); return buildAndUpload(src); }
+    try{ const h = await window.showDirectoryPicker({id:"studium", mode:"read"}); await idbSet("dir", h); DIR_STATE = "ok"; const src = await collectFromHandle(h); src.fp = contentFp(src.files); return buildAndUpload(src); }
     catch(e){ if(e && e.name==="AbortError") return; }
   }
   $("#dirInput").click();

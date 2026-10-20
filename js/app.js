@@ -71,6 +71,7 @@ if(location.protocol.startsWith("http") && "serviceWorker" in navigator){ naviga
   if(DEVICE==="PC" && window.showDirectoryPicker){ const h = await idbGet("dir"); if(h){ try{ DIR_STATE = (await h.queryPermission({mode:"read"}))==="granted" ? "ok" : "ask"; }catch(e){ DIR_STATE="ask"; } } }
   render();
   if(hasToken()) syncNow({first:true}); else renderSync();
-  erfStart();   // ab 1.5.0: Warteschlange, Entwurf, Übernahme
+  erfStart();   // ab 1.5.0: Warteschlange, Entwurf, Ablage
+  kalStart();   // ab 1.6.0: Kalender laden
 })();
 window.KT = {buildItems, rate, mergeIn, get items(){return ITEMS;}, get prog(){return PROG;}, get local(){return LOCAL;}, syncNow, applyPackage};

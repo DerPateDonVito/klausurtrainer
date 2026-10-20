@@ -277,3 +277,123 @@ body[data-area="erfassen"] .toast{bottom:auto;top:16px}
 .sdet>summary::-webkit-details-marker{display:none}
 .sdet>summary::before{content:"";flex:0 0 auto;width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);margin-right:4px;transition:transform .15s}
 .sdet[open]>summary::before{transform:rotate(45deg)}
+
+/* ---------- Ab 1.6.0: eigene Termine (Kalender „Studium“) und Kurse ohne Modul ---------- */
+.mx-E{--mbg:#FBF3DD;--mink:#3D3010;--msub:#6E4508;--mmot:#8A6A10;--mline:#EDD58A;--r3:#C9A227}
+.mx-X{--mbg:#ECE8DF;--mink:#2D3748;--msub:#4A5568;--mmot:#4A5568;--mline:#DDD8CC;--r3:#A0AEC0}
+[data-theme="dark"] .mx-E{--mbg:#F1E3B5;--mink:#2E240A;--msub:#5A4410;--r3:#C9A227}
+[data-theme="dark"] .mx-X{--mbg:#CBD5E0;--mink:#1A202C;--msub:#2D3748;--r3:#718096}
+
+/* Erfassen: laufende Vorlesung im Fenster, V-Zeit in der Schnellnotiz, Namensfelder */
+.capHint{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:4px 10px 10px 4px;background:var(--goodSoft);color:var(--text);font-size:.9rem}
+.capLive{flex:0 0 10px;width:10px;height:10px;border-radius:50%;background:#2F8F5B;box-shadow:0 0 0 4px rgba(47,143,91,.18)}
+.nrow .nsub{flex:1 1 auto}
+.nvz{font:500 1.6rem/1 var(--serif);padding-right:4px}
+.erfnf{display:flex;align-items:center;gap:6px;border:1px solid var(--rule);border-radius:8px;background:var(--bg);padding:0 10px 0 0}
+.erfnf:focus-within{outline:2px solid var(--gold);outline-offset:0;border-color:transparent}
+.erfnf input{flex:1 1 auto;min-width:0;border:0;background:transparent;padding:10px 12px;font:.92rem/1.4 ui-monospace,"Cascadia Mono",Consolas,monospace;color:var(--head)}
+.erfnf input:focus{outline:0}
+.erfext{flex:0 0 auto;font:.92rem/1 ui-monospace,"Cascadia Mono",Consolas,monospace;color:var(--muted)}
+
+/* ---------- Kalender (Lastenheft H5): Liste nach Design A, Woche als Zeitleiste nach Design C ---------- */
+.kal{display:flex;flex-direction:column;gap:16px;max-width:1180px}
+.kal>.note,.kal>.warn{margin:0}
+.khead{display:flex;flex-direction:column;gap:6px}
+.krow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.krow h1{margin:0}
+.ksub{font-size:.82rem;color:var(--muted)}
+.kseg{display:flex;gap:2px;padding:3px;border:1px solid var(--rule);border-radius:999px;background:var(--surf)}
+.kseg button{min-height:40px;padding:0 16px;border:0;border-radius:999px;background:transparent;color:var(--head);font:600 .88rem/1 var(--f);cursor:pointer}
+.kseg button[aria-pressed="true"]{background:var(--acc);color:var(--onAcc);font-weight:700}
+.kcols{display:flex;flex-direction:column;gap:20px}
+.kcols[data-ansicht="liste"] .kwoche,.kcols[data-ansicht="woche"] .kliste{display:none}
+.kpc{display:none}
+.kliste,.kwoche{display:flex;flex-direction:column;gap:8px;min-width:0}
+.ktag{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:6px 2px 0}
+.ktag strong{font-size:.95rem;color:var(--head)}
+.ktag span{font-size:.82rem;color:var(--muted)}
+.kfrei{font-size:.82rem;color:var(--muted);border-left:2px solid var(--rule);padding:2px 0 2px 10px}
+.kband{width:100%;text-align:left;display:flex;gap:12px;padding:12px 14px 12px 16px;border:0;border-radius:4px 12px 12px 4px;background:var(--mbg);color:var(--mink);box-shadow:inset 4px 0 0 var(--r3);font:inherit}
+.kband .kzeit{flex:0 0 52px;display:flex;flex-direction:column;gap:2px;font-size:.82rem;color:var(--msub)}
+.kband .kzeit strong{font-size:.95rem;color:var(--mink)}
+.kband .ktext{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px}
+.kband .ktext strong{font:500 1.12rem/1.2 var(--serif)}
+.kband .ktext span{font-size:.82rem;color:var(--msub)}
+.kband.eigen{background:var(--surf);color:var(--text);box-shadow:none;border:1px dashed var(--r3);border-radius:10px}
+.kband.eigen .kzeit strong{color:var(--goldText)}
+.kband.eigen .ktext strong{font:600 .95rem/1.3 var(--f)}
+.kband.eigen .ktext span,.kband.eigen .kzeit{color:var(--muted)}
+.kganz{display:flex;gap:10px;align-items:baseline;padding:8px 12px;border-radius:8px;background:var(--mbg);color:var(--mink);font-size:.88rem}
+.kganz span{font-size:.75rem;color:var(--msub)}
+.kganz.eigen{background:var(--surf);border:1px dashed var(--r3);color:var(--text)}
+/* Woche als Zeitleiste je Tag */
+.kwnav{display:flex;align-items:center;gap:8px}
+.kwnav>div{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;text-align:center}
+.kwnav strong{font-size:.95rem;color:var(--head)}
+.kwnav span{font-size:.75rem;color:var(--muted)}
+.kwbtn{width:44px;height:44px;flex:0 0 44px;border:1px solid var(--rule);border-radius:8px;background:var(--surf);color:var(--head);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.kwbox{background:var(--surf);border:1px solid var(--rule);border-radius:10px;padding:8px 12px 10px;display:flex;flex-direction:column;gap:4px}
+.kwz{display:flex;align-items:center;gap:8px;min-height:44px}
+.kwt{flex:0 0 50px;display:flex;flex-direction:column;font-size:.82rem;color:var(--muted)}
+.kwt em{font-style:normal;font-size:.68rem;color:var(--goldText)}
+.kwz.ist-heute .kwt{color:var(--head);font-weight:700}
+.kwb{flex:1 1 auto;position:relative;height:40px;border:1px solid var(--line);border-radius:6px;background:var(--surf)}
+.kwb.leer{background:var(--bg)}
+[data-theme="dark"] .kwb{border-color:var(--rule)}
+.kwz.ist-heute .kwb{box-shadow:0 0 0 2px var(--gold)}
+.kwachse{min-height:18px}
+.kwa{flex:1 1 auto;position:relative;height:16px}
+.kwa span{position:absolute;transform:translateX(-50%);font-size:.7rem;color:var(--muted)}
+.kwa span:first-child{transform:none}
+.kwa span:last-child{transform:translateX(-100%)}
+.kbar{position:absolute;top:4px;bottom:4px;box-sizing:border-box;padding:0 6px;border:1px solid var(--r3);border-radius:5px;background:var(--mbg);color:var(--mink);font:700 .72rem/1 var(--f);text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.kbar.eigen{border-style:dashed}
+.kbar.kgz{left:0;right:0}
+.kbar[aria-pressed="true"]{box-shadow:0 0 0 2px var(--head)}
+.kdet{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:4px 10px 10px 4px;background:var(--mbg);color:var(--mink);box-shadow:inset 4px 0 0 var(--r3);font-size:.88rem}
+.kdet strong{font:500 1.1rem/1.25 var(--serif)}
+.kdet span{color:var(--msub)}
+.kleg{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:.75rem;color:var(--muted)}
+.kleg span{display:inline-flex;align-items:center;gap:6px}
+.kleg i{width:10px;height:10px;border-radius:2px;background:var(--mbg);border:1px solid var(--r3)}
+.kleg i.eigen{border-style:dashed}
+@media(min-width:960px){
+  .kseg{display:none}
+  .kcols{display:grid;grid-template-columns:minmax(300px,1fr) minmax(0,1.5fr);gap:28px;align-items:start}
+  .kcols[data-ansicht] .kliste,.kcols[data-ansicht] .kwoche{display:flex}
+  .kpc{display:block}
+}
+
+/* Kachel „Als Nächstes“ bzw. „Jetzt · Vorlesung läuft“ auf Heute (Design A) */
+.nx{position:relative;overflow:hidden;background:var(--mbg);color:var(--mink);border-radius:4px 12px 12px 4px;padding:16px 18px;display:flex;flex-direction:column;gap:6px;box-shadow:0 6px 16px rgba(19,41,75,.07)}
+.nx.eigen{background:var(--surf);color:var(--text);border:1px dashed var(--r3);border-radius:12px;box-shadow:none}
+.nx .motif{position:absolute;right:-30px;top:-6px;width:180px;height:auto;color:var(--mmot);pointer-events:none}
+.nx>*:not(.motif){position:relative}
+.nxrow{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:.82rem;font-weight:600;color:var(--msub)}
+.nxv{font:500 1.6rem/1 var(--serif);color:var(--mink)}
+.nxt{font:500 1.5rem/1.15 var(--serif)}
+.nxs{font-size:.88rem;color:var(--msub)}
+.nxp{height:6px;border-radius:3px;background:rgba(0,0,0,.12);margin-top:4px}
+.nxp i{display:block;height:100%;border-radius:3px;background:var(--mmot)}
+.nxb{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:6px}
+.nxb .btn{min-height:48px}
+.nxb .btn.ghost{background:transparent;border-color:var(--mink);color:var(--mink)}
+.nxd{display:flex;justify-content:space-between;gap:10px;font-size:.88rem;color:var(--muted);padding:2px 4px}
+.nxd a{font-weight:600;text-decoration:none}
+@media(min-width:960px){ .nxt{font-size:1.75rem} }
+
+/* Einstellungen: Kalender und Kurse */
+.klist{display:flex;flex-direction:column;border:1px solid var(--rule);border-radius:10px;overflow:hidden;margin:6px 0 8px}
+.kswr{width:100%;min-height:56px;padding:8px 12px;display:flex;align-items:center;gap:12px;border:0;border-top:1px solid var(--line);background:var(--surf);color:var(--text);font:inherit;text-align:left}
+.klist>.kswr:first-child{border-top:0}
+button.kswr{cursor:pointer}
+.kswatch{flex:0 0 10px;width:10px;height:28px;border-radius:2px;background:var(--mbg);border:1px solid var(--r3)}
+.ktxt{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px}
+.ktxt>span:first-child{font-weight:600}
+.ktxt select{margin-top:4px;max-width:180px;padding:6px 10px}
+.kswb{flex:0 0 auto;border:0;background:none;padding:6px;cursor:pointer}
+.ksw{display:inline-block;flex:0 0 auto;width:46px;height:28px;border-radius:14px;background:var(--rule);position:relative;transition:background .15s}
+.ksw i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:11px;background:#FFFFFF;transition:left .15s}
+[aria-checked="true"]>.ksw,[aria-checked="true"] .ksw{background:var(--acc)}
+[aria-checked="true"]>.ksw i,[aria-checked="true"] .ksw i{left:21px}
+[data-theme="dark"] [aria-checked="true"] .ksw i{background:#13294B}

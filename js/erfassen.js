@@ -2,11 +2,13 @@
 /* ============================================================
    Erfassen und Schnellnotiz (Lastenheft H3, H4) und Ablage Weg A (H7), ab Version 1.5.0
    - Foto: Modul und Art wählen, mehrere Fotos ergeben ein PDF (Bilder lange Kante ≤ 2.000 px, JPEG 0,8).
-     Datei: unverändert mit eigener Endung. Name JJJJ-MM-TT_Mx_Art_NN.pdf. Ziel: Drive › Klausurtrainer › Eingang.
+     Datei: unverändert mit eigener Endung. Name als Vorschlag JJJJ-MM-TT_Mx_Art_NN, frei änderbar (ab 1.6.0).
+   - Ziel ab 1.6.0: ein von der App angelegter Ordner „00_Eingang“, den Julian einmal in Drive in den Studienordner
+     (Studium_Cloudkopie) verschiebt. Die App behält das Recht auf ihren Ordner, egal wo er liegt (drive.file).
    - Schnellnotiz: alle Notizen eines Tages und Moduls fortlaufend in JJJJ-MM-TT_Mx_Notizen.md, Prüfungshinweise als „KR:“.
    - Ohne Netz oder ohne Anmeldung: Warteschlange im Browser (IndexedDB „studienbuch“), entfernt erst nach bestätigtem
      Hochladen. Fotos liegen schon vor dem Hochladen als Entwurf im Browser, damit nichts verloren geht.
-   - Am PC: Übernahme aus Eingang nach <Studienordner>/00_Eingang, danach Drive-Datei nach Eingang/_übernommen.
+   - Was 1.5.0 noch in Klausurtrainer/Eingang abgelegt hat, verschiebt die App in Drive in den neuen Ordner.
      Nichts wird gelöscht oder überschrieben, bei gleichem Namen wird hochgezählt (_2, _3 …).
    - Die Lernlogik und der Lernstand werden hier nicht berührt.
    ============================================================ */
@@ -91,26 +93,66 @@ async function pdfAusSeiten(seiten){
 }
 
 /* ---------- Drive: Eingang, Hochladen, Notizen anhängen ---------- */
-let ERF_O = null;   // geprüfte Ordner-IDs, 10 Minuten gültig (spart Anfragen)
+let ERF_O = null;   // geprüfter Zielordner, 10 Minuten gültig (spart Anfragen)
+let ABLAGE = {bekannt: false, verschoben: false, umgezogen: 0};
+const FOLDER_MIME = "application/vnd.google-apps.folder";
+async function ordnerMeta(id){ try{ const f = await (await api(`${DRIVE}/files/${id}?fields=id,trashed,parents`)).json(); return f.trashed ? null : f; }catch(e){ if(e.auth || e.net) throw e; return null; } }
+// Zielordner „00_Eingang“: gemerkte ID, sonst der von der App angelegte Ordner dieses Namens (bevorzugt der verschobene),
+// sonst neu in Klausurtrainer anlegen. Die App sieht nur eigene Ordner, ein fremder „00_Eingang“ wird nie benutzt.
 async function ordnerEingang(){
-  if(ERF_O && Date.now() - ERF_O.t < 10 * 60e3 && LOCAL.ids.eingang === ERF_O.eingang && LOCAL.ids.uebern === ERF_O.uebern) return ERF_O;
+  if(ERF_O && Date.now() - ERF_O.t < 10 * 60e3 && LOCAL.ids.ablage === ERF_O.ziel) return ERF_O;
   const root = await ensureFolder();
-  if(!(LOCAL.ids.eingang && await checkId(LOCAL.ids.eingang))){ LOCAL.ids.eingang = await findFolder(EINGANG, root) || await createFolder(EINGANG, root); delete LOCAL.ids.uebern; persistLocal(); }
-  if(!(LOCAL.ids.uebern && await checkId(LOCAL.ids.uebern))){ LOCAL.ids.uebern = await findFolder(UEBERN, LOCAL.ids.eingang) || await createFolder(UEBERN, LOCAL.ids.eingang); persistLocal(); }
-  ERF_O = {eingang: LOCAL.ids.eingang, uebern: LOCAL.ids.uebern, t: Date.now()};
+  let id = LOCAL.ids.ablage, meta = id ? await ordnerMeta(id) : null;
+  if(!meta){
+    const kand = (await driveListe(`name='${ZIEL}' and mimeType='${FOLDER_MIME}' and trashed=false`, "id,name,parents,createdTime"))
+      .sort((a, b) => (((a.parents || []).includes(root) ? 1 : 0) - ((b.parents || []).includes(root) ? 1 : 0)) || String(a.createdTime || "").localeCompare(String(b.createdTime || "")));
+    if(kand.length){ id = kand[0].id; meta = kand[0]; }
+    else{ id = await createFolder(ZIEL, root); meta = {id, parents: [root]}; }
+    LOCAL.ids.ablage = id; persistLocal();
+  }
+  ERF_O = {ziel: id, verschoben: !(meta.parents || []).includes(root), t: Date.now()};
+  ABLAGE.bekannt = true; ABLAGE.verschoben = ERF_O.verschoben;
   return ERF_O;
 }
+// Umzug aus der Ablage von 1.5.0 (Klausurtrainer/Eingang) in den neuen Zielordner, einmal je Sitzung
+let ERF_UMZUG = false;
+async function altEingangUmziehen(o){
+  if(ERF_UMZUG || !LOCAL.ids.eingang) return; ERF_UMZUG = true;
+  if(!(await ordnerMeta(LOCAL.ids.eingang))) return;
+  const liste = (await driveListe(`'${LOCAL.ids.eingang}' in parents and trashed=false`, "id,name,mimeType")).filter(f => f.mimeType !== FOLDER_MIME);
+  for(const f of liste){
+    await api(`${DRIVE}/files/${f.id}?addParents=${o.ziel}&removeParents=${LOCAL.ids.eingang}&fields=id`, {method: "PATCH", headers: {"Content-Type": "application/json"}, body: "{}"});
+    erfLog({name: f.name, at: new Date().toISOString(), umgezogen: true}); ABLAGE.umgezogen++;
+  }
+  if(liste.length) toast(`${liste.length} ${liste.length === 1 ? "Datei" : "Dateien"} aus der bisherigen Ablage nach ${ZIEL} verschoben.`);
+}
+const qStr = s => String(s).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 async function driveListe(q, felder = "id,name,size"){
   let out = [], tok = "";
   do { const r = await (await api(`${DRIVE}/files?q=${qs(q)}&fields=nextPageToken,files(${felder})&pageSize=1000&spaces=drive${tok ? "&pageToken=" + qs(tok) : ""}`)).json(); out = out.concat(r.files || []); tok = r.nextPageToken || ""; } while(tok);
   return out;
 }
-// Nächste freie Nummer NN für Tag, Modul und Art (sieht Eingang und _übernommen; ohne Namenssuche von Drive, die nur Wortanfänge findet)
+// Nächste freie Nummer NN für Tag, Modul und Art: Zielordner und alle eigenen Dateien mit diesem Anfang
+// (auch die, die die Modulchats schon weiter einsortiert haben)
 async function naechsteNummer(prefix, o){
-  const liste = await driveListe(`('${o.eingang}' in parents or '${o.uebern}' in parents) and trashed=false`, "id,name");
+  const a = await driveListe(`'${o.ziel}' in parents and trashed=false`, "id,name");
+  let b = []; try{ b = await driveListe(`name contains '${qStr(prefix)}' and trashed=false`, "id,name"); }catch(e){ if(e.auth || e.net) throw e; }
   let max = 0; const re = new RegExp("^" + prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(\\d{2,})(?:_\\d+)?\\.");
-  liste.forEach(f => { const m = re.exec(f.name); if(m) max = Math.max(max, Number(m[1])); });
+  a.concat(b).forEach(f => { const m = re.exec(f.name); if(m) max = Math.max(max, Number(m[1])); });
   return String(max + 1).padStart(2, "0");
+}
+// Selbst gewählter Name: bei gleichem Namen im Zielordner _2, _3 … anhängen (nichts überschreiben)
+async function freierDriveName(name, o){
+  const p = /^(.*?)(\.[^.]*)?$/.exec(name), stamm = p[1], ext = p[2] || "";
+  const vorhanden = new Set((await driveListe(`name contains '${qStr(stamm)}' and '${o.ziel}' in parents and trashed=false`, "id,name")).map(f => f.name));
+  for(let i = 1; i < 1000; i++){ const k = i === 1 ? name : `${stamm}_${i}${ext}`; if(!vorhanden.has(k)) return k; }
+  throw new Error("Kein freier Dateiname für " + name);
+}
+// Eingabe des Nutzers bereinigen: keine Zeichen, die Windows oder Drive verbieten, Endung nicht doppelt
+function nameSauber(s, ext){
+  let n = String(s || "").normalize("NFC").replace(/[\u0000-\u001f\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim();
+  if(ext) n = n.replace(new RegExp("\\." + ext.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$", "i"), "");
+  return n.replace(/^[.\s-]+|[.\s-]+$/g, "").slice(0, 150);
 }
 async function driveHochladen(name, blob, mime, parent){
   const meta = {name, parents: [parent], mimeType: mime};
@@ -134,7 +176,7 @@ async function driveHochladen(name, blob, mime, parent){
 function notizZeile(n){ return `- ${n.zeit}${n.v ? ` · V ${n.v}` : ""} · ${n.kr ? "KR: " : ""}${String(n.text).trim().replace(/\r?\n/g, "\n  ")}\n`; }
 async function notizAnhaengen(it, o){
   const name = `${it.datum}_${it.modul}_Notizen.md`, zeile = notizZeile(it);
-  const f = (await driveListe(`name='${name}' and '${o.eingang}' in parents and trashed=false`, "id,name"))[0];
+  const f = (await driveListe(`name='${name}' and '${o.ziel}' in parents and trashed=false`, "id,name"))[0];
   if(f){
     const alt = await (await api(`${DRIVE}/files/${f.id}?alt=media`)).text();
     if(alt.includes(zeile)) return name;   // schon angehängt (Antwort ging beim letzten Mal verloren): nicht doppelt
@@ -143,7 +185,7 @@ async function notizAnhaengen(it, o){
     return name;
   }
   const kopf = `# Notizen ${it.modul} ${erfName(it.modul)}, ${fmtDate(it.datum)}\n\nQuelle: Schnellnotiz im Studienbuch. Zeilen mit „KR:“ sind Prüfungshinweise.\n\n`;
-  await driveHochladen(name, new Blob([kopf + zeile], {type: "text/markdown"}), "text/markdown", o.eingang);
+  await driveHochladen(name, new Blob([kopf + zeile], {type: "text/markdown"}), "text/markdown", o.ziel);
   return name;
 }
 
@@ -157,13 +199,22 @@ async function qAbarbeiten(){
     const liste = await qAlle();
     if(liste.length){
       const o = await ordnerEingang();
+      await altEingangUmziehen(o);
       for(const it of liste){
         try{
           if(it.kind === "notiz"){ await notizAnhaengen(it, o); notizStatus(it.id, "drive"); }
           else{
-            const prefix = `${it.datum}_${it.modul}_${it.art}_`;
-            const name = prefix + await naechsteNummer(prefix, o) + "." + it.ext;
-            await driveHochladen(name, it.blob, it.mime, o.eingang);
+            let name;
+            if(it.name){
+              // eigener Name; ein stehen gelassenes „_NN“ wird durch die nächste Nummer ersetzt
+              let n = it.name;
+              if(n.includes("_NN")){ const pre = n.slice(0, n.indexOf("_NN") + 1); n = n.replace("_NN", "_" + await naechsteNummer(pre, o)); }
+              name = await freierDriveName(n + "." + it.ext, o);
+            }else{
+              const prefix = `${it.datum}_${it.modul}_${it.art}_`;
+              name = prefix + await naechsteNummer(prefix, o) + "." + it.ext;
+            }
+            await driveHochladen(name, it.blob, it.mime, o.ziel);
             erfLog({name, at: new Date().toISOString(), seiten: it.seiten || 0, groesse: it.blob.size, original: it.original || ""});
             nDatei++;
           }
@@ -220,8 +271,12 @@ function erfStatus(){
 function erfEntwurfText(e){ return [e.seiten ? `${e.seiten} ${e.seiten === 1 ? "Foto" : "Fotos"}` : "", e.dateien ? `${e.dateien} ${e.dateien === 1 ? "Datei" : "Dateien"}` : ""].filter(Boolean).join(", "); }
 async function erfSheetMalen(neu){
   await entwurfPruefen();
+  const lv = typeof kalLaeuft === "function" ? kalLaeuft() : null;
   if(neu && ERF_ENTWURF) ERF.modul = ERF_ENTWURF.modul;   // Entwurf vorhanden: beim Öffnen dessen Modul vorwählen
+  else if(neu && lv && lv.m && erfModule().includes(lv.m)) ERF.modul = lv.m;   // sonst Modul der laufenden Vorlesung (H3)
   const m = erfModulStart(); ERF.modul = m;
+  const hint = $("#capHint");
+  if(hint){ hint.hidden = !lv; if(lv) hint.innerHTML = `<span class="capLive" aria-hidden="true"></span><span><strong>Vorlesung läuft</strong> · ${esc(lv.m || "")} ${esc(lv.m ? erfDoz(lv.m) : lv.t)} · V ${kalVZeit(lv)}</span>`; }
   $("#capMods").innerHTML = erfModule().map(x => `<button type="button" class="capMod mx-${x}" data-cm="${x}" aria-pressed="${x === m}" aria-label="${x} ${esc(erfName(x))}">${x}</button>`).join("");
   $("#capMods").querySelectorAll("[data-cm]").forEach(b => b.onclick = () => { ERF.modul = b.dataset.cm; UI.erfModul = ERF.modul; saveUI(); erfSheetMalen(false); });
   $("#capInfo").innerHTML = `${esc(erfName(m))}${erfDoz(m) ? " · " + esc(erfDoz(m)) : ""}${!LOCAL.cid ? ` · <span class="warnText">Google Drive ist noch nicht eingerichtet, Erfassungen bleiben vorerst in diesem Browser.</span>` : ""}`;
@@ -259,7 +314,7 @@ async function erfListeZeigen(){
   const box = $("#capList"); if(!box) return;
   if(!box.hidden){ box.hidden = true; return; }
   let l = []; try{ l = await qAlle(); }catch(e){}
-  box.innerHTML = `<ul class="qlist">${l.map(it => `<li><span>${it.kind === "notiz" ? `${it.datum}_${it.modul}_Notizen.md · ${esc(it.zeit)}` : `${it.datum}_${it.modul}_${esc(it.art)}_NN.${esc(it.ext)}${it.seiten ? ` · ${it.seiten} S.` : ""}`}</span><span class="muted">${it.blob ? erfMB(it.blob.size) : ""}${it.meldung ? ` · <span class="warnText">${esc(it.meldung)}</span>` : ""}</span></li>`).join("") || "<li>Nichts offen.</li>"}</ul>
+  box.innerHTML = `<ul class="qlist">${l.map(it => `<li><span>${it.kind === "notiz" ? `${it.datum}_${it.modul}_Notizen.md · ${esc(it.zeit)}` : `${it.name ? esc(it.name) : `${it.datum}_${it.modul}_${esc(it.art)}_NN`}.${esc(it.ext)}${it.seiten ? ` · ${it.seiten} S.` : ""}`}</span><span class="muted">${it.blob ? erfMB(it.blob.size) : ""}${it.meldung ? ` · <span class="warnText">${esc(it.meldung)}</span>` : ""}</span></li>`).join("") || "<li>Nichts offen.</li>"}</ul>
     <div class="row">${!LOCAL.cid ? `<button class="btn small" type="button" data-capgo="data">Google einrichten</button>` : !hasToken() ? `<button class="btn small" type="button" id="capLogin">Mit Google anmelden</button>` : `<button class="btn small" type="button" id="capRetry">Jetzt hochladen</button>`}</div>
     <p class="hint" style="margin:6px 0 0">Bleibt im Browser, bis Drive das Hochladen bestätigt hat. Nichts wird gelöscht.</p>`;
   box.hidden = false;
@@ -282,9 +337,12 @@ async function viewErf(){
   }
   const m = e.modul, n = e.seiten.length, d = e.dateien || [], datum = e.datum || todayStr();
   const groesse = e.seiten.reduce((a, s) => a + s.blob.size, 0) + d.reduce((a, f) => a + f.blob.size, 0);
-  const namen = [n ? "pdf" : null, ...d.map(f => erfExt(f.name))].filter(Boolean);
   const prefix = `${datum}_${m}_${e.art}_`, nr = ERF_NR[prefix] && Date.now() - ERF_NR[prefix].t < 60e3 ? ERF_NR[prefix] : null;
-  const nameZeile = (x, i) => `<code>${esc(prefix)}${nr ? String(Number(nr.n) + i).padStart(2, "0") : "NN"}.${esc(x)}</code>`;
+  const vorschlag = i => prefix + (nr ? String(Number(nr.n) + i).padStart(2, "0") : "NN");
+  // Je Ergebnisdatei ein Namensfeld: zuerst das PDF aus den Fotos, dann jede Datei. Leer oder unverändert = Vorschlag.
+  const felder = (n ? [{key: "pdf", ext: "pdf", wert: e.pdfName}] : []).concat(d.map((f, i) => ({key: "f" + i, ext: erfExt(f.name), wert: f.nameNeu})));
+  const nameZeile = (fl, i) => `<label class="erfnf"><span class="sr">Dateiname ${i + 1}</span><input type="text" data-nf="${fl.key}" value="${esc(fl.wert || vorschlag(i))}" data-vor="${esc(vorschlag(i))}" autocomplete="off" spellcheck="false" enterkeyhint="done"><span class="erfext">.${esc(fl.ext)}</span></label>`;
+  const zielText = ABLAGE.bekannt && !ABLAGE.verschoben ? "Drive › Klausurtrainer › 00_Eingang (einmal in den Studienordner verschieben, siehe Einstellungen)" : "Studium_Cloudkopie › 00_Eingang";
   main.innerHTML = `<div class="erf mx-${m}">
     <div class="erfhead"><button class="tback" id="erfBack" type="button" aria-label="Zurück">${ICON.back}</button><strong>${n ? "Fotos prüfen" : d.length === 1 ? "Datei prüfen" : "Dateien prüfen"}</strong><span>${m} · ${esc(erfDoz(m) || erfName(m))}</span></div>
     ${n ? `<section class="erfsec" aria-label="Seiten"><div class="tile-h"><span class="kicker">${n} ${n === 1 ? "Seite" : "Seiten"} · ein PDF</span><span class="small muted">${n > 1 ? "‹ schiebt nach vorn" : ""}</span></div>
@@ -294,24 +352,34 @@ async function viewErf(){
       <button type="button" class="erfadd" id="erfMehr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Seite hinzufügen</button></section>` : ""}
     ${d.length ? `<section class="erfsec" aria-label="Dateien"><span class="kicker">${d.length} ${d.length === 1 ? "Datei" : "Dateien"} · unverändert</span><div class="erfdat">${d.map((f, i) => `<div><span>${esc(f.name)} <span class="muted small">(${erfMB(f.blob.size)})</span></span><button class="btn link" type="button" data-fdel="${i}">entfernen</button></div>`).join("")}</div></section>` : ""}
     <fieldset class="erfart"><legend class="kicker">Art</legend><div class="chips">${ARTEN.map(a => `<button type="button" class="chip" data-art="${a}" aria-pressed="${a === e.art}">${a}</button>`).join("")}</div></fieldset>
-    <section class="erfname" aria-label="Ablage"><span class="kicker">Dateiname</span>
-      ${namen.map(nameZeile).join("")}
-      <span class="small muted">${n ? `${n} ${n === 1 ? "Seite" : "Seiten"} · ` : ""}ca. ${erfMB(groesse)} · Drive › Klausurtrainer › Eingang${DEVICE === "PC" ? ", von dort nach 00_Eingang" : ", am PC weiter nach 00_Eingang"}.${nr ? "" : " Die Nummer NN vergibt die App beim Hochladen."}</span></section>
+    <section class="erfname" aria-label="Ablage"><span class="kicker">${felder.length === 1 ? "Dateiname" : "Dateinamen"}</span>
+      ${felder.map(nameZeile).join("")}
+      <span class="small muted">${n ? `${n} ${n === 1 ? "Seite" : "Seiten"} · ` : ""}ca. ${erfMB(groesse)} · ${zielText}.${nr ? "" : " „NN“ ersetzt die App beim Hochladen durch die nächste Nummer."} Der Name ist frei änderbar.</span></section>
     <div class="erffoot"><button class="btn big" id="erfGo" type="button">${ICON_UP}Hochladen</button></div>
   </div>`;
+  // Namensfelder: nur speichern, nicht neu zeichnen (Tastatur bleibt offen)
+  let nfTimer = null;
+  main.querySelectorAll("[data-nf]").forEach(inp => inp.oninput = () => {
+    const k = inp.dataset.nf, eigen = inp.value === inp.dataset.vor ? undefined : inp.value;
+    if(k === "pdf") e.pdfName = eigen; else e.dateien[Number(k.slice(1))].nameNeu = eigen;
+    clearTimeout(nfTimer); nfTimer = setTimeout(() => entwurfSpeichern(e).catch(() => {}), 400);
+  });
   const neu = async f => { try{ await entwurfSpeichern(Object.assign(e, f)); }catch(err){ toast("Speichern im Browser fehlgeschlagen: " + err.message); } await entwurfPruefen(); viewErf(); };
   $("#erfBack").onclick = () => { erfZurueck(); toast("Entwurf bleibt gespeichert. Über + Erfassen geht es weiter."); };
   main.querySelectorAll("[data-art]").forEach(b => b.onclick = () => neu({art: b.dataset.art}));
   main.querySelectorAll("[data-del]").forEach(b => b.onclick = () => { e.seiten.splice(Number(b.dataset.del), 1); neu({}); });
   main.querySelectorAll("[data-vor]").forEach(b => b.onclick = () => { const i = Number(b.dataset.vor); [e.seiten[i - 1], e.seiten[i]] = [e.seiten[i], e.seiten[i - 1]]; neu({}); });
   main.querySelectorAll("[data-fdel]").forEach(b => b.onclick = () => { e.dateien.splice(Number(b.dataset.fdel), 1); neu({}); });
+  main.querySelectorAll("[data-nf]").forEach(inp => inp.onkeydown = ev => { if(ev.key === "Enter"){ ev.preventDefault(); inp.blur(); } });
   const mehr = $("#erfMehr"); if(mehr) mehr.onclick = () => $("#camIn").click();
   $("#erfGo").onclick = async () => {
     const btn = $("#erfGo"); btn.disabled = true; btn.textContent = "Wird vorbereitet …";
     try{
       const items = [];
-      if(e.seiten.length){ const pdf = await pdfAusSeiten(e.seiten); items.push({kind: "datei", datum, modul: m, art: e.art, ext: "pdf", mime: "application/pdf", blob: pdf, seiten: e.seiten.length}); }
-      for(const f of d) items.push({kind: "datei", datum, modul: m, art: e.art, ext: erfExt(f.name), mime: f.mime, blob: f.blob, original: f.name});
+      // eigener Name nur, wenn er vom aktuellen Vorschlag abweicht (sonst vergibt die App die Nummer beim Hochladen neu)
+      const eigen = (inp, ext) => { if(!inp) return null; const v = nameSauber(inp.value, ext); return v && v !== inp.dataset.vor ? v : null; };
+      if(e.seiten.length){ const pdf = await pdfAusSeiten(e.seiten); items.push({kind: "datei", datum, modul: m, art: e.art, ext: "pdf", mime: "application/pdf", blob: pdf, seiten: e.seiten.length, name: eigen(main.querySelector('[data-nf="pdf"]'), "pdf")}); }
+      d.forEach((f, i) => { const ext = erfExt(f.name); items.push({kind: "datei", datum, modul: m, art: e.art, ext, mime: f.mime, blob: f.blob, original: f.name, name: eigen(main.querySelector(`[data-nf="f${i}"]`), ext)}); });
       items.forEach(it => it.id = erfId());
       await qAusEntwurf(items);            // einreihen und Entwurf leeren in einem Schritt
       ERF_ENTWURF = null; erfPersist(); await qZaehlen();
@@ -336,13 +404,14 @@ const uhrzeit = () => new Date().toLocaleTimeString("de-DE", {hour: "2-digit", m
 function viewNotiz(){
   document.body.classList.add("focus");
   const m = erfModulStart(), heute = todayStr(), key = `${heute}_${m}`, liste = notizenAlle()[key] || [];
+  const lv = typeof kalLaeuft === "function" ? kalLaeuft(m) : null;   // laufende Vorlesung dieses Moduls (H4)
   main.innerHTML = `<div class="notiz mx-${m}">
-    <div class="nhead">${MOTIF[m] || ""}<div class="nrow"><button class="tback" id="nBack" type="button" aria-label="Zurück">${ICON.back}</button><span class="nsub">${m} · ${esc(erfDoz(m) || erfName(m))}</span></div>
-      <strong>Notizen heute</strong></div>
+    <div class="nhead">${MOTIF[m] || ""}<div class="nrow"><button class="tback" id="nBack" type="button" aria-label="Zurück">${ICON.back}</button><span class="nsub">${m} · ${esc(erfDoz(m) || erfName(m))}${lv ? ` · seit ${kalUhr(lv.s)}` : ""}</span>${lv ? `<span class="nvz">V ${kalVZeit(lv)}</span>` : ""}</div>
+      <strong>${lv ? "Notizen dieser Vorlesung" : "Notizen heute"}</strong></div>
     <div class="nliste">${liste.length ? liste.map(n => `<article><div class="nmeta"><span>${esc(n.zeit)}</span>${n.v ? `<b>V ${esc(n.v)}</b>` : ""}<span class="nst" data-nid="${esc(n.id)}" data-s="${esc(n.s)}">${n.s === "drive" ? "in Drive" : "wartet"}</span>${n.kr ? `<span class="nkr">KR</span>` : ""}</div><p>${esc(n.text)}</p></article>`).join("")
       : `<p class="hint">Noch keine Notiz zu ${m} heute.</p>`}
       <span class="small muted">Gespeichert in <code>${key}_Notizen.md</code> · Drive › Klausurtrainer › Eingang</span></div>
-    <div class="nfoot"><label for="nText" class="kicker">Neue Notiz · ${uhrzeit()}</label>
+    <div class="nfoot"><label for="nText" class="kicker">Neue Notiz · ${lv ? "V " + kalVZeit(lv) : uhrzeit()}</label>
       <textarea id="nText" rows="3" placeholder="Was hat der Dozent gesagt?">${esc(ERF.entwurf || "")}</textarea>
       <div class="nbtn"><button type="button" class="nkrbtn" id="nKr" aria-pressed="${!!ERF.kr}" title="Prüfungshinweis">KR</button><button type="button" class="btn" id="nSave">Speichern</button></div>
       <span class="tiny muted">KR gilt auch automatisch bei „Klausur“, „Prüfung“, „kommt dran“, „wichtig“, „merken“ oder „!“.</span></div>
@@ -356,9 +425,10 @@ function viewNotiz(){
     const text = ta.value.trim(); if(!text){ ta.focus(); return; }
     const btn = $("#nSave"); if(btn.disabled) return; btn.disabled = true;
     const zeit = uhrzeit(), kr = !!ERF.kr || KR_WORTE.test(text);
-    const it = {kind: "notiz", datum: heute, modul: m, zeit, v: "", kr, text, id: erfId()};
+    const lvj = typeof kalLaeuft === "function" ? kalLaeuft(m) : null, v = lvj ? kalVZeit(lvj) : "";
+    const it = {kind: "notiz", datum: heute, modul: m, zeit, v, kr, text, id: erfId()};
     // Zuerst in die Liste im Browser, dann in die Warteschlange: so ist die Notiz sofort sichtbar und gesichert
-    const NN = notizenAlle(); (NN[key] = NN[key] || []).push({id: it.id, zeit, v: "", kr, text, s: "wartet"});
+    const NN = notizenAlle(); (NN[key] = NN[key] || []).push({id: it.id, zeit, v, kr, text, s: "wartet"});
     const grenze = numDay(dayNum(heute) - 30); for(const k in NN) if(k.slice(0, 10) < grenze) delete NN[k];   // Liste: 30 Tage (die Notizen selbst liegen in Drive)
     lsSet("notizen", NN);
     try{ await qEinreihen(it); }
@@ -370,73 +440,15 @@ function viewNotiz(){
   if(DEVICE === "PC") ta.focus({preventScroll: true});
 }
 
-/* ---------- Übernahme am PC (H7): Eingang → Studienordner/00_Eingang ---------- */
-let UEB = {zustand: "aus", warten: 0, letzte: 0, laeuft: false, hinweis: "", ordner: "", h: null};
-async function uebHandle(){ try{ UEB.h = await idbGet("dir") || null; }catch(e){ UEB.h = null; } UEB.ordner = UEB.h ? UEB.h.name : ""; return UEB.h; }
-async function uebernahme(interaktiv){
-  if(DEVICE !== "PC" || !LOCAL.cid || !hasToken() || UEB.laeuft) return;
-  if(!interaktiv && Date.now() - UEB.letzte < 60e3) return;
-  UEB.laeuft = true; UEB.letzte = Date.now();
-  let n = 0, fehl = 0;
-  try{
-    const o = await ordnerEingang();
-    const liste = (await driveListe(`'${o.eingang}' in parents and trashed=false`, "id,name,size,mimeType"))
-      .filter(f => !/^application\/vnd\.google-apps\./.test(f.mimeType || "")).sort((a, b) => a.name.localeCompare(b.name));
-    UEB.warten = liste.length;
-    if(!liste.length){ UEB.zustand = "leer"; return; }
-    if(!window.showDirectoryPicker){ UEB.zustand = "kein-zugriff"; return; }
-    const h = await uebHandle();
-    if(!h){ UEB.zustand = "kein-ordner"; return; }
-    let perm = await h.queryPermission({mode: "readwrite"});
-    if(perm !== "granted" && interaktiv) perm = await h.requestPermission({mode: "readwrite"});
-    if(perm !== "granted"){ UEB.zustand = "freigabe"; return; }
-    let ziel;
-    try{ ziel = await h.getDirectoryHandle(ZIEL); }   // nie anlegen: fehlt 00_Eingang, ist vermutlich der falsche Ordner gewählt
-    catch(e){ if(e && (e.name === "NotFoundError" || e.name === "TypeMismatchError")){ UEB.zustand = "kein-eingang"; return; } throw e; }
-    for(const f of liste){
-      try{
-        const blob = await (await api(`${DRIVE}/files/${f.id}?alt=media`)).blob();
-        if(f.size != null && Number(f.size) !== blob.size) throw new Error(`${f.name}: unvollständig geladen`);
-        const name = await freierName(ziel, f.name);
-        const fh = await ziel.getFileHandle(name, {create: true});
-        const w = await fh.createWritable(); await w.write(blob); await w.close();
-        const pruef = await fh.getFile();
-        if(pruef.size !== blob.size) throw new Error(`${name}: Größe stimmt nicht (${pruef.size} statt ${blob.size})`);
-        // erst nach erfolgreichem Schreiben in Drive verschieben, nichts löschen
-        await api(`${DRIVE}/files/${f.id}?addParents=${o.uebern}&removeParents=${o.eingang}&fields=id`, {method: "PATCH", headers: {"Content-Type": "application/json"}, body: "{}"});
-        erfLog({name, at: new Date().toISOString(), uebernommen: true, groesse: blob.size, drive: f.name});
-        n++; UEB.warten--;
-      }catch(e){
-        if(e.auth || e.net) throw e;
-        fehl++; UEB.hinweis = e.message || String(e); console.error(e);
-      }
-    }
-    UEB.zustand = fehl ? "fehler" : "ok";
-    if(n) toast(`${n} ${n === 1 ? "Datei" : "Dateien"} nach ${ZIEL} übernommen.`);
-  }catch(e){
-    if(e.status === 404) ERF_O = null;
-    UEB.zustand = e.auth ? "anmelden" : e.net ? "offline" : "fehler"; UEB.hinweis = e.message || "";
-    if(!e.auth && !e.net) console.error(e);
-  }finally{
-    UEB.laeuft = false; erfAnzeigen();
-  }
-}
-async function freierName(ordner, name){
-  const p = /^(.*?)(\.[^.]*)?$/.exec(name), stamm = p[1], ext = p[2] || "";
-  for(let i = 1; i < 1000; i++){
-    const kand = i === 1 ? name : `${stamm}_${i}${ext}`;
-    try{ await ordner.getFileHandle(kand); }
-    catch(e){ if(e && e.name === "NotFoundError") return kand; if(e && e.name === "TypeMismatchError") continue; throw e; }
-  }
-  throw new Error("Kein freier Dateiname für " + name);
-}
-// Klick im Hinweis: Freigabe sofort anfragen (Brave verlangt dafür einen frischen Klick), dann übernehmen
-async function uebFreigeben(){
-  const h = UEB.h || await uebHandle();
-  if(!h){ go("data"); return; }
-  try{ if(await h.requestPermission({mode: "readwrite"}) !== "granted"){ toast("Ohne Schreibrecht bleiben die Dateien sicher in Drive."); UEB.zustand = "freigabe"; erfAnzeigen(); return; } }
-  catch(e){ toast("Freigabe nicht möglich: " + e.message); return; }
-  uebernahme(true);
+/* ---------- Ablage pflegen: Zielordner prüfen, alte Ablage umziehen (ab 1.6.0 statt der Übernahme am PC) ---------- */
+let ABL_LETZTE = 0, ABL_LAEUFT = false;
+async function ablagePflege(sofort){
+  if(!LOCAL.cid || !hasToken() || ABL_LAEUFT) return;
+  if(!sofort && Date.now() - ABL_LETZTE < 10 * 60e3) return;
+  ABL_LAEUFT = true; ABL_LETZTE = Date.now();
+  try{ if(sofort) ERF_O = null; const o = await ordnerEingang(); await altEingangUmziehen(o); }
+  catch(e){ if(e.status === 404) ERF_O = null; if(!e.auth && !e.net) console.error(e); }
+  finally{ ABL_LAEUFT = false; erfAnzeigen(); }
 }
 
 /* ---------- Hinweise für „Heute“ ---------- */
@@ -444,19 +456,11 @@ function erfHinweise(){
   let h = "";
   if(ERF_ENTWURF) h += `<div class="note">Entwurf ${ERF_ENTWURF.modul} mit ${erfEntwurfText(ERF_ENTWURF)} ist noch nicht hochgeladen. <a href="#" id="entwurfGo">Fortsetzen</a></div>`;
   if(Q_ANZ) h += `<div class="note">${Q_ANZ} ${Q_ANZ === 1 ? "Erfassung wartet" : "Erfassungen warten"} auf Hochladen${!LOCAL.cid ? ". <a href=\"#\" data-go=\"data\">Google einrichten</a>" : !hasToken() ? ". <a href=\"#\" data-login>Mit Google anmelden</a>" : Q_FEHLER ? ` (${esc(Q_FEHLER)}). <a href="#" id="qNochmal">Erneut versuchen</a>` : "."}</div>`;
-  if(DEVICE === "PC" && UEB.warten > 0){
-    const w = `${UEB.warten} ${UEB.warten === 1 ? "Datei wartet" : "Dateien warten"} in Drive › Klausurtrainer › Eingang.`;
-    if(UEB.zustand === "freigabe") h += `<div class="note">${w} <a href="#" id="uebGo">Nach ${ZIEL} übernehmen</a> (Brave fragt einmal nach dem Schreibrecht für ${esc(UEB.ordner || "den Studienordner")})</div>`;
-    else if(UEB.zustand === "kein-ordner") h += `<div class="note">${w} Für die Übernahme nach ${ZIEL} einmal unter <a href="#" data-go="data">Einstellungen</a> „Inhalte nach Drive“ ausführen und den Studienordner wählen.</div>`;
-    else if(UEB.zustand === "kein-eingang") h += `<div class="warn">${w} Im gewählten Ordner ${esc(UEB.ordner)} fehlt der Unterordner ${ZIEL}. Unter <a href="#" data-go="data">Einstellungen</a> „Inhalte nach Drive“ ausführen und den Studienordner selbst wählen. Die Dateien bleiben sicher in Drive.</div>`;
-    else if(UEB.zustand === "kein-zugriff") h += `<div class="note">${w} Sie liegen am PC auch unter Meine Ablage\\Klausurtrainer\\Eingang. Damit die App sie selbst nach ${ZIEL} legt, in Brave unter brave://flags „File System Access API“ einschalten und Brave neu starten.</div>`;
-    else if(UEB.zustand === "fehler") h += `<div class="warn">Übernahme nach ${ZIEL} unterbrochen: ${esc(UEB.hinweis)}. Die Dateien bleiben in Drive. <a href="#" id="uebGo">Erneut versuchen</a></div>`;
-  }
+  if(ABLAGE.bekannt && !ABLAGE.verschoben) h += `<div class="note">Einmal einrichten: Die App hat in Drive › Klausurtrainer den Ordner ${ZIEL} angelegt. In Drive in den Ordner Studium_Cloudkopie verschieben, dann landen alle Erfassungen direkt dort. <a href="#" data-go="data">Anleitung</a></div>`;
   return h;
 }
 function erfHinweiseVerdrahten(){
   ERF_SIG = erfHinweise();
-  const u = $("#uebGo"); if(u) u.onclick = ev => { ev.preventDefault(); uebFreigeben(); };
   const q = $("#qNochmal"); if(q) q.onclick = ev => { ev.preventDefault(); qAbarbeiten(); };
   const en = $("#entwurfGo"); if(en) en.onclick = ev => { ev.preventDefault(); erfEntwurfOeffnen(); };
 }
@@ -464,20 +468,25 @@ function erfHinweiseVerdrahten(){
 /* ---------- Einstellungen: Abschnitt „Erfassen und Ablage“ ---------- */
 async function erfEinstellungen(sec){
   const log = lsGet("ablage", []).slice(0, 5);
-  let perm = "";
-  if(DEVICE === "PC" && window.showDirectoryPicker){ const h = await uebHandle(); if(h){ try{ perm = await h.queryPermission({mode: "readwrite"}); }catch(e){ perm = "prompt"; } } }
-  if(VIEW !== "data") return;
+  const zustand = !LOCAL.cid ? "Google ist noch nicht eingerichtet." : !hasToken() ? "Zum Prüfen mit Google anmelden." : !ABLAGE.bekannt ? "Wird geprüft …"
+    : ABLAGE.verschoben ? `Erfassungen landen direkt in Studium_Cloudkopie › ${ZIEL}.` : `Der Ordner ${ZIEL} liegt noch in Drive › Klausurtrainer.`;
   sec.innerHTML = `<h2>Erfassen und Ablage</h2>
     <div class="card">
-      <p>${Q_ANZ ? `${Q_ANZ} ${Q_ANZ === 1 ? "Erfassung wartet" : "Erfassungen warten"} auf Hochladen.` : "Keine Erfassung wartet."}${ERF_ENTWURF ? ` Entwurf ${ERF_ENTWURF.modul}: ${erfEntwurfText(ERF_ENTWURF)}.` : ""}</p>
+      <p><strong>${esc(zustand)}</strong></p>
+      ${ABLAGE.bekannt && !ABLAGE.verschoben ? `<ol class="small" style="margin:0 0 10px;padding-left:20px">
+        <li>drive.google.com öffnen, Meine Ablage › Studium_Cloudkopie: den bisherigen Ordner ${ZIEL} umbenennen in „${ZIEL}_alt“.</li>
+        <li>Meine Ablage › Klausurtrainer: den Ordner ${ZIEL} mit Rechtsklick › Verschieben nach Studium_Cloudkopie verschieben.</li>
+        <li>Den Inhalt von „${ZIEL}_alt“ (zum Beispiel _info.txt) in den neuen ${ZIEL} verschieben. Den leeren alten Ordner in den Papierkorb legen.</li>
+        <li>Hier „Ablage prüfen“ drücken.</li></ol>
+        <p class="hint" style="margin:0 0 10px">Warum so: Die App darf nur Ordner beschreiben, die sie selbst angelegt hat. Dieses Recht behält sie auch nach dem Verschieben. Ein zusätzliches Google-Recht ist nicht nötig.</p>` : ""}
+      ${hasToken() && LOCAL.cid ? `<button class="btn small ghost" type="button" id="ablPruef">Ablage prüfen</button>` : ""}
+      <p style="margin-top:12px">${Q_ANZ ? `${Q_ANZ} ${Q_ANZ === 1 ? "Erfassung wartet" : "Erfassungen warten"} auf Hochladen.` : "Keine Erfassung wartet."}${ERF_ENTWURF ? ` Entwurf ${ERF_ENTWURF.modul}: ${erfEntwurfText(ERF_ENTWURF)}.` : ""}</p>
       ${Q_ANZ && hasToken() ? `<button class="btn small" type="button" id="eqGo">Jetzt hochladen</button>` : ""}
-      ${log.length ? `<table class="t" style="margin-top:8px">${log.map(x => `<tr><td class="small" style="white-space:nowrap">${fmtDT(x.at)}</td><td class="small">${esc(x.name)}${x.uebernommen ? ` → ${ZIEL}` : ""}</td></tr>`).join("")}</table>` : ""}
-      ${DEVICE === "PC" ? `<p class="hint" style="margin-top:10px">Übernahme nach ${ZIEL}: ${!window.showDirectoryPicker ? "in Brave unter brave://flags „File System Access API“ einschalten." : !UEB.h ? "zuerst „Inhalte nach Drive“ ausführen und den Studienordner wählen." : perm === "granted" ? `automatisch nach ${esc(UEB.ordner)}\\${ZIEL}.` : `Schreibrecht für ${esc(UEB.ordner)} fehlt noch.`}</p>
-        ${window.showDirectoryPicker && UEB.h && perm !== "granted" ? `<button class="btn small ghost" type="button" id="eqPerm">Schreibrecht erteilen</button>` : ""}` : ""}
-      <p class="hint" style="margin-top:10px">Ziel ist Drive › Klausurtrainer › Eingang. Die App sieht dort nur Dateien, die sie selbst angelegt hat. Von Hand dort abgelegte Dateien übernimmt sie nicht.</p>
+      ${log.length ? `<table class="t" style="margin-top:8px">${log.map(x => `<tr><td class="small" style="white-space:nowrap">${fmtDT(x.at)}</td><td class="small">${esc(x.name)}${x.umgezogen ? ` (nach ${ZIEL} verschoben)` : x.uebernommen ? " (am PC übernommen)" : ""}</td></tr>`).join("")}</table>` : ""}
+      <p class="hint" style="margin-top:10px">Die App sieht in ${ZIEL} nur Dateien, die sie selbst hochgeladen hat. Was die Modulchats dort ablegen oder wegsortieren, bleibt davon unberührt.</p>
     </div>`;
   const g = $("#eqGo"); if(g) g.onclick = () => { qAbarbeiten(); toast("Wird hochgeladen …"); };
-  const p = $("#eqPerm"); if(p) p.onclick = async () => { await uebFreigeben(); if(VIEW === "data") render(); };
+  const p = $("#ablPruef"); if(p) p.onclick = async () => { p.disabled = true; await ablagePflege(true); if(VIEW === "data") render(); toast(ABLAGE.verschoben ? `Eingerichtet: Erfassungen landen in Studium_Cloudkopie › ${ZIEL}.` : `${ZIEL} liegt noch in Klausurtrainer.`); };
 }
 
 /* ---------- Bedienelemente im Fenster und Start ---------- */
@@ -490,14 +499,13 @@ $("#camIn").addEventListener("change", ev => { const l = [...ev.target.files]; e
 $("#fileIn").addEventListener("change", ev => { const l = [...ev.target.files]; ev.target.value = ""; erfDateienWaehlen(l, "datei"); });
 
 // Anstoßen: beim Start, nach Anmeldung, bei Netz, beim Zurückkehren ins Fenster, minütlich
-function erfAnstossen(){ return qAbarbeiten().then(() => uebernahme(false)); }
+function erfAnstossen(){ return qAbarbeiten().then(() => ablagePflege(false)); }
 let ERF_GESTARTET = false;
 async function erfStart(){
   if(ERF_GESTARTET) return; ERF_GESTARTET = true;
   await qZaehlen(); await entwurfPruefen();
-  if(DEVICE === "PC") await uebHandle();
   if(VIEW === "heute") softRender();
-  setInterval(() => { if(document.visibilityState === "visible" && hasToken() && (Q_ANZ || DEVICE === "PC")) erfAnstossen(); }, 60e3);
+  setInterval(() => { if(document.visibilityState === "visible" && hasToken() && Q_ANZ) qAbarbeiten(); }, 60e3);
   window.addEventListener("online", () => { if(hasToken()) erfAnstossen(); });
   document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible" && hasToken()) erfAnstossen(); });
   if(hasToken()) erfAnstossen();

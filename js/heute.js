@@ -1,6 +1,6 @@
 "use strict";
 /* ============================================================
-   Studienbuch: Startseite „Heute“, Kalender (Platzhalter), Erfassen-Fenster, Einstellungen
+   Studienbuch: Startseite „Heute“, Erfassen-Fenster, Einstellungen (Kalender ab 1.6.0 in kalender.js)
    Lastenheft H1, H2, H9. Erfassen selbst (H3, H4, H7) steht ab 1.5.0 in erfassen.js. Die Lernlogik wird hier nur gelesen.
    ============================================================ */
 
@@ -32,7 +32,7 @@ function dateShort(){ return new Date().toLocaleDateString("de-DE", {weekday:"sh
 /* ---------- Kacheln (Lastenheft H2): erweiterbar, jede ein- und ausblendbar ---------- */
 // col: a = linke Spalte am PC, b = rechte Spalte. ready:false = folgt mit einem späteren Paket.
 const TILES = [
-  {id:"naechste",  label:"Als Nächstes (nächste Vorlesung)", col:"a", ready:false, folgt:"folgt mit dem Kalender"},
+  {id:"naechste",  label:"Als Nächstes (nächste Vorlesung)", col:"a", ready:true,  render:() => { const h = tileNaechste(); KAL_SIG = h; return h; }},
   {id:"faellig",   label:"Heute fällig",                     col:"a", ready:true,  render:tileFaellig},
   {id:"countdown", label:"Bis zur Klausur",                  col:"b", ready:true,  render:tileCountdown}
 ];
@@ -57,8 +57,9 @@ function tileCountdown(){
   return `<section class="tile" aria-label="Bis zur Klausur">
     <span class="kicker">Bis zur Klausur</span>
     <div class="cd">${modOrder().map(m => { const d = daysTo(examOf(m));
-      return `<div class="cdb mx-${m}" title="Vorläufiger Termin, bis der FOM-Kalender ihn bestätigt. Ändern unter Einstellungen.">
-        <span>${m} · ${fmtDate(examOf(m)).slice(0,6)}</span><strong class="mono">${d>=0?d:"–"}</strong><span>${d>=0?(d===1?"Tag":"Tage"):"vorbei"} · vorläufig</span></div>`; }).join("")}</div>
+      const ok = kalKlausurStatus(m) === "bestätigt";
+      return `<div class="cdb mx-${m}" title="${ok ? "Bestätigt durch den FOM-Kalender." : "Vorläufiger Termin, bis der FOM-Kalender ihn bestätigt. Ändern unter Einstellungen."}">
+        <span>${m} · ${fmtDate(examOf(m)).slice(0,6)}</span><strong class="mono">${d>=0?d:"–"}</strong><span>${d>=0?(d===1?"Tag":"Tage"):"vorbei"} · ${ok ? "bestätigt" : "vorläufig"}</span></div>`; }).join("")}</div>
   </section>`;
 }
 
@@ -67,7 +68,8 @@ function heuteHinweise(){
   if(DIR_STATE==="ask") h += `<div class="note">Studienordner auf neue Inhalte prüfen: <a href="#" id="dirCheck">Jetzt prüfen</a> (Brave fragt nach der Freigabe, „Bei jedem Besuch erlauben“ wählen, falls angeboten)</div>`;
   else if(DEVICE==="PC" && hasToken() && window.showDirectoryPicker && DIR_STATE==="none" && PKG) h += `<div class="note">Damit die App neue Inhalte selbst findet: einmal unter Einstellungen „Inhalte nach Drive“ ausführen und den Studienordner wählen.</div>`;
   if(DIFF && !DIFF.gesehen) h += `<div class="note">Neue Inhalte vom ${fmtDT(DIFF.at)}: ${DIFF.neu.length} neue, ${DIFF.geaendert.length} geänderte Fragen. <a href="#" data-go="stats">Anzeigen</a></div>`;
-  h += erfHinweise();   // ab 1.5.0: Warteschlange, Entwurf, Übernahme am PC
+  h += kalHeuteHinweis();   // ab 1.6.0: Kalender freigeben bzw. API einschalten
+  h += erfHinweise();   // ab 1.5.0: Warteschlange, Entwurf, Ablage
   return h;
 }
 
@@ -85,23 +87,13 @@ function viewHeute(){
       : `<div class="card"><p>Alle Kacheln sind ausgeblendet.</p><a href="#" data-go="data">Unter Einstellungen einblenden</a></div>`}
     <p class="hint hfoot">Inhalte vom ${PKG?fmtDT(PKG.erstellt):"–"}${pkgAge>7?` (${pkgAge} Tage alt)`:""} · ${ITEMS.filter(trainable).length} Fragen</p>
   </div>`;
-  wireBanner(); erfHinweiseVerdrahten();
+  wireBanner(); erfHinweiseVerdrahten(); kalVerdrahten();
   const dc = $("#dirCheck"); if(dc) dc.onclick = e => { e.preventDefault(); autoContentCheck(true); };
   main.querySelectorAll("[data-hm]").forEach(b => b.onclick = () => startLernen(b.dataset.hm));
   const all = $("#hAll"); if(all) all.onclick = () => startLernen("ALL");
 }
 
-/* ---------- Kalender (Lastenheft H5): folgt mit Paket 4 ---------- */
-function viewKalender(){
-  main.innerHTML = `${syncBanner()}<h1>Kalender</h1>
-    <div class="card"><p>Der Kalender folgt mit dem Ausbauschritt Kalender: Vorlesungen aus dem Abo „FOM“ und eigene Fristen aus dem Kalender „Studium“, nur lesend, als Liste der nächsten 14 Tage und als Woche.</p>
-      <p class="hint" style="margin:0">Bis dahin gelten die vorläufigen Klausurtermine unten. Ändern unter <a href="#" data-go="data">Einstellungen</a>.</p></div>
-    <h2>Klausurtermine (vorläufig)</h2>
-    <table class="t">${modOrder().map(m => { const d = daysTo(examOf(m));
-      return `<tr><td style="white-space:nowrap"><span class="dot" style="--mc:${MODULES[m].color}"></span> ${m} ${esc(MODULES[m].short)}</td><td class="mono" style="white-space:nowrap">${fmtDate(examOf(m))}</td><td class="mono" style="white-space:nowrap">${d>=0?`${d} ${d===1?"Tag":"Tage"}`:"vorbei"}</td></tr>`; }).join("")}
-      <tr><td style="white-space:nowrap"><span class="dot" style="--mc:var(--m4)"></span> M4 ${esc(KURSE.M4.short)}</td><td colspan="2" class="muted">Essay, Abgabe laut Studienbuch</td></tr></table>`;
-  wireBanner();
-}
+/* ---------- Kalender (Lastenheft H5): ab 1.6.0 in kalender.js ---------- */
 
 /* ---------- Erfassen (Lastenheft H3, H4): Fenster von unten, Inhalt und Funktionen in erfassen.js ---------- */
 let SHEET_FOCUS = null;
@@ -126,6 +118,7 @@ function viewEinstellungen(opts){
   const ver = main.lastElementChild;   // Versionszeile bleibt ganz unten
   main.insertBefore(sec, ver);
   const erf = document.createElement("section"); main.insertBefore(erf, sec); erfEinstellungen(erf);   // ab 1.5.0
+  const kal = document.createElement("section"); main.insertBefore(kal, erf); kalEinstellungen(kal);   // ab 1.6.0
   sec.querySelectorAll("[data-tile]").forEach(b => b.onclick = () => {
     const id = b.dataset.tile; UI.tiles[id] = !tileOn(TILES.find(t=>t.id===id)); saveUI();
     b.setAttribute("aria-pressed", UI.tiles[id]);
